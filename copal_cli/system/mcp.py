@@ -51,16 +51,16 @@ def print_mcp_available(target_root: Path) -> None:
     mcp_names = read_mcp_available(target_root)
 
     if not mcp_names:
-        print("\n未找到 .copal/mcp-available.json 或文件为空")
-        print("\n您可以创建该文件并添加可用的 MCP 工具名称，例如：")
+        print("\n.copal/mcp-available.json not found or empty")
+        print("\nYou can create this file and add available MCP tool names, for example:")
         print('  ["context7", "active-file", "file-tree"]')
-        print("\n支持的 MCP 示例：")
-        print("  - context7: 上下文文档查询工具")
-        print("  - active-file: 当前活动文件工具")
-        print("  - file-tree: 文件树导航工具")
+        print("\nSupported MCP examples:")
+        print("  - context7: Context documentation query tool")
+        print("  - active-file: Active file tool")
+        print("  - file-tree: File tree navigation tool")
         return
 
-    print(f"\n可用的 MCP 工具 ({len(mcp_names)}):")
+    print(f"\nAvailable MCP tools ({len(mcp_names)}):")
     for name in mcp_names:
         print(f"  - {name}")
     print()

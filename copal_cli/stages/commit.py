@@ -27,7 +27,7 @@ def commit_command(target: str, task_id: str | None = None) -> int:
     target_root = Path(target).resolve()
 
     if not target_root.exists():
-        logger.error(f"目标路径不存在: {target_root}")
+        logger.error(f"Target path does not exist: {target_root}")
         return 1
 
     runtime_dir, artifacts_dir = ensure_runtime_dirs(target_root)
@@ -52,15 +52,15 @@ def commit_command(target: str, task_id: str | None = None) -> int:
     commit_file = artifacts_dir / "commit.json"
     write_text(commit_file, json.dumps(commit_data, indent=2, ensure_ascii=False))
 
-    print(f"\n✓ 提交阶段已完成: {commit_file}\n")
-    print("工作流元数据:")
-    print(f"  任务 ID: {commit_data['task_id']}")
-    print(f"  时间戳: {commit_data['timestamp']}")
-    print(f"  产物数量: {len(artifact_files)}")
+    print(f"\n✓ Commit stage completed: {commit_file}\n")
+    print("Workflow metadata:")
+    print(f"  Task ID: {commit_data['task_id']}")
+    print(f"  Timestamp: {commit_data['timestamp']}")
+    print(f"  Artifact count: {len(artifact_files)}")
     if artifact_files:
-        print("\n  产物列表:")
+        print("\n  Artifact list:")
         for artifact in sorted(artifact_files):
             print(f"    - {artifact}")
-    print("\n工作流已完成！可以执行 'copal analyze' 开始新任务。\n")
+    print("\nWorkflow complete! Run 'copal analyze' to start a new task.\n")
 
     return 0

@@ -36,7 +36,7 @@ def analyze_command(
     target_root = Path(target).resolve()
 
     if not target_root.exists():
-        logger.error(f"目标路径不存在: {target_root}")
+        logger.error(f"Target path does not exist: {target_root}")
         return 1
 
     # Ensure runtime and artifacts directories exist
@@ -72,15 +72,15 @@ def analyze_command(
         )
 
         # Print instructions
-        print(f"\n✓ 分析阶段 Prompt 已生成: {prompt_path}\n")
-        print("请让 Codex 执行以下操作:")
-        print(f"  1. 读取 Prompt 文件: {prompt_path}")
-        print(f"  2. 完成分析后，将产物保存到: {artifacts_dir / 'analysis.md'}\n")
-        print("完成后执行下一步:")
+        print(f"\n✓ Analysis stage prompt generated: {prompt_path}\n")
+        print("Please have Codex perform the following:")
+        print(f"  1. Read the prompt file: {prompt_path}")
+        print(f"  2. After completing analysis, save artifacts to: {artifacts_dir / 'analysis.md'}\n")
+        print("Next step:")
         print("  copal spec\n")
 
         return 0
 
     except Exception as e:
-        logger.error(f"生成 Prompt 失败: {e}")
+        logger.error(f"Failed to generate prompt: {e}")
         return 1

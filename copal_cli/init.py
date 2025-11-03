@@ -24,16 +24,16 @@ def _copy(src: Path, dst: Path, force: bool, dry_run: bool = False) -> bool:
     """
     if dst.exists():
         if not force:
-            logger.debug(f"跳过（已存在）: {dst}")
+            logger.debug(f"Skipped (already exists): {dst}")
             return False
-        logger.info(f"覆盖: {dst}")
+        logger.info(f"Overwriting: {dst}")
         if not dry_run:
             if dst.is_dir():
                 shutil.rmtree(dst)
             else:
                 dst.unlink()
     else:
-        logger.info(f"创建: {dst}")
+        logger.info(f"Creating: {dst}")
 
     if dry_run:
         return True
@@ -62,13 +62,13 @@ def init_command(*, target: str, force: bool, dry_run: bool = False) -> int:
     """
     target_root = Path(target).resolve()
     if not target_root.exists():
-        logger.error(f"目标路径不存在: {target_root}")
-        raise SystemExit(f"目标路径不存在: {target_root}")
+        logger.error(f"Target path does not exist: {target_root}")
+        raise SystemExit(f"Target path does not exist: {target_root}")
 
     if dry_run:
-        logger.info(f"[预览模式] 将要安装到: {target_root}")
+        logger.info(f"[Dry-run mode] Installing to: {target_root}")
     else:
-        logger.info(f"开始安装 CoPal 模板到: {target_root}")
+        logger.info(f"Installing CoPal templates to: {target_root}")
 
     files_to_copy = [
         (TEMPLATE_DIR / "AGENTS.md", target_root / "AGENTS.md"),
@@ -84,10 +84,10 @@ def init_command(*, target: str, force: bool, dry_run: bool = False) -> int:
             copied_count += 1
 
     if dry_run:
-        logger.info(f"[预览模式] 将创建/覆盖 {copied_count} 个文件/目录")
-        logger.info("运行时不带 --dry-run 参数以执行实际操作")
+        logger.info(f"[Dry-run mode] Would create/overwrite {copied_count} files/directories")
+        logger.info("Run without --dry-run to perform actual operation")
     else:
-        logger.info(f"✓ CoPal 模板已成功安装到 {target_root}")
-        logger.info("请在 `AGENTS.md` 的\"项目自定义\"列补充链接，并编辑 `UserAgents.md` 填写项目专属内容。")
+        logger.info(f"✓ CoPal templates successfully installed to {target_root}")
+        logger.info("Please update AGENTS.md 'Project Customization' section and edit UserAgents.md with project-specific content.")
 
     return 0

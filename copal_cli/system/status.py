@@ -21,37 +21,37 @@ def print_status(target_root: Path) -> None:
     # Show available MCPs
     mcp_names = read_mcp_available(target_root)
     if mcp_names:
-        print(f"可用 MCP 工具 ({len(mcp_names)}):")
+        print(f"Available MCP tools ({len(mcp_names)}):")
         for name in mcp_names:
             print(f"  ✓ {name}")
     else:
-        print("可用 MCP 工具: 无 (.copal/mcp-available.json 不存在或为空)")
+        print("Available MCP tools: None (.copal/mcp-available.json not found or empty)")
 
     # Show runtime prompts
     runtime_dir = target_root / ".copal" / "runtime"
-    print(f"\n运行时 Prompt (.copal/runtime/):")
+    print(f"\nRuntime prompts (.copal/runtime/):")
     if runtime_dir.exists():
         prompts = sorted(runtime_dir.glob("*.prompt.md"))
         if prompts:
             for prompt in prompts:
                 print(f"  ✓ {prompt.name}")
         else:
-            print("  无")
+            print("  None")
     else:
-        print("  目录不存在")
+        print("  Directory not found")
 
     # Show artifacts
     artifacts_dir = target_root / ".copal" / "artifacts"
-    print(f"\n产物 (.copal/artifacts/):")
+    print(f"\nArtifacts (.copal/artifacts/):")
     if artifacts_dir.exists():
         artifacts = sorted(artifacts_dir.glob("*.md")) + sorted(artifacts_dir.glob("*.json"))
         if artifacts:
             for artifact in artifacts:
                 print(f"  ✓ {artifact.name}")
         else:
-            print("  无")
+            print("  None")
     else:
-        print("  目录不存在")
+        print("  Directory not found")
 
     # Suggest next command
     stages = ['analysis', 'spec', 'plan', 'implement', 'review', 'commit']
@@ -72,10 +72,10 @@ def print_status(target_root: Path) -> None:
                 next_stage = stage
                 break
 
-    print("\n建议的下一步:")
+    print("\nSuggested next step:")
     if next_stage:
         print(f"  copal {next_stage}")
     else:
-        print("  所有阶段已完成，可执行 copal analyze 开始新任务")
+        print("  All stages complete, run 'copal analyze' to start a new task")
 
     print()
