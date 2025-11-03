@@ -53,7 +53,7 @@ class TestMcpUtils:
         mcp_file.parent.mkdir(parents=True)
         mcp_data = ["context7", "active-file", "file-tree"]
 
-        with open(mcp_file, 'w') as f:
+        with open(mcp_file, 'w', encoding='utf-8') as f:
             json.dump(mcp_data, f)
 
         result = read_mcp_available(tmp_path)

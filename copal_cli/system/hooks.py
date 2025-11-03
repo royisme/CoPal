@@ -34,7 +34,6 @@ def select_injection_blocks(
 
     try:
         # Parse YAML manually (zero dependencies requirement)
-        import re
         content = hooks_yaml_path.read_text(encoding='utf-8')
 
         # Simple YAML parser for the expected structure
@@ -115,16 +114,25 @@ def _parse_hooks_yaml(content: str) -> list[dict[str, Any]]:
             value = stripped.split(':', 1)[1].strip()
             if value.startswith('['):
                 # Inline list: [item1, item2]
-                items = value.strip('[]').split(',')
-                current_rule['any_mcp'] = [item.strip().strip('"\'') for item in items]
+                value_inner = value.strip('[]').strip()
+                if value_inner:
+                    items = value_inner.split(',')
+                    current_rule['any_mcp'] = [item.strip().strip('"\'') for item in items if item.strip()]
+                else:
+                    current_rule['any_mcp'] = []
             else:
                 current_rule['any_mcp'] = []
                 in_inject = False
         elif stripped.startswith('all_mcp:'):
             value = stripped.split(':', 1)[1].strip()
             if value.startswith('['):
-                items = value.strip('[]').split(',')
-                current_rule['all_mcp'] = [item.strip().strip('"\'') for item in items]
+                # Inline list: [item1, item2]
+                value_inner = value.strip('[]').strip()
+                if value_inner:
+                    items = value_inner.split(',')
+                    current_rule['all_mcp'] = [item.strip().strip('"\'') for item in items if item.strip()]
+                else:
+                    current_rule['all_mcp'] = []
             else:
                 current_rule['all_mcp'] = []
                 in_inject = False
@@ -135,11 +143,11 @@ def _parse_hooks_yaml(content: str) -> list[dict[str, Any]]:
             # Injection block item
             block_path = stripped[1:].strip().strip('"\'')
             current_rule['inject'].append(block_path)
-        elif stripped.startswith('- ') and 'any_mcp' in current_rule and not current_rule.get('any_mcp'):
-            # List item for any_mcp
+        elif stripped.startswith('- ') and 'any_mcp' in current_rule and len(current_rule.get('any_mcp', [])) == 0 and not in_inject:
+            # List item for any_mcp (multiline format)
             current_rule['any_mcp'].append(stripped[1:].strip().strip('"\''))
-        elif stripped.startswith('- ') and 'all_mcp' in current_rule and not current_rule.get('all_mcp'):
-            # List item for all_mcp
+        elif stripped.startswith('- ') and 'all_mcp' in current_rule and len(current_rule.get('all_mcp', [])) == 0 and not in_inject:
+            # List item for all_mcp (multiline format)
             current_rule['all_mcp'].append(stripped[1:].strip().strip('"\''))
 
     # Add last rule
