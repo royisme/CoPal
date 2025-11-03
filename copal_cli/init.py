@@ -74,6 +74,8 @@ def init_command(*, target: str, force: bool, dry_run: bool = False) -> int:
         (TEMPLATE_DIR / "AGENTS.md", target_root / "AGENTS.md"),
         (TEMPLATE_DIR / "UserAgents.md", target_root / "UserAgents.md"),
         (TEMPLATE_DIR / ".copal" / "global", target_root / ".copal" / "global"),
+        (TEMPLATE_DIR / ".copal" / "hooks", target_root / ".copal" / "hooks"),
+        (TEMPLATE_DIR / ".copal" / "mcp-available.json", target_root / ".copal" / "mcp-available.json"),
     ]
 
     copied_count = 0
