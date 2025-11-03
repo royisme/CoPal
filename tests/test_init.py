@@ -113,7 +113,7 @@ class TestInitCommand:
         result = init_command(target=str(tmp_path), force=False, dry_run=False)
 
         assert result == 0
-        assert mock_copy.call_count == 3
+        assert mock_copy.call_count == 5  # Updated to 5 files
 
         # Verify the files that should be copied
         calls = [call[0] for call in mock_copy.call_args_list]
@@ -147,7 +147,7 @@ class TestInitCommand:
         result = init_command(target=str(tmp_path), force=False, dry_run=True)
 
         assert result == 0
-        assert mock_copy.call_count == 3
+        assert mock_copy.call_count == 5  # Updated to 5 files
 
         # Verify dry_run flag is passed
         for call in mock_copy.call_args_list:
@@ -157,12 +157,12 @@ class TestInitCommand:
     def test_init_command_counts_copied_files(self, mock_copy, tmp_path):
         """Test that init_command counts copied files correctly."""
         # Simulate some files being skipped
-        mock_copy.side_effect = [True, False, True]
+        mock_copy.side_effect = [True, False, True, True, False]  # Updated to 5 calls
 
         result = init_command(target=str(tmp_path), force=False, dry_run=False)
 
         assert result == 0
-        assert mock_copy.call_count == 3
+        assert mock_copy.call_count == 5  # Updated to 5 files
 
 
 class TestTemplateDir:
