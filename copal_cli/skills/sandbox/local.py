@@ -118,10 +118,8 @@ class LocalSandbox:
         preexec_fn: Callable[[], None] | None = None
         if resource is not None:
             def limiter() -> None:
-                if self._cpu_time_limit:
-                    resource.setrlimit(resource.RLIMIT_CPU, (self._cpu_time_limit, self._cpu_time_limit))
-                if self._memory_limit_bytes:
-                    resource.setrlimit(resource.RLIMIT_AS, (self._memory_limit_bytes, self._memory_limit_bytes))
+                resource.setrlimit(resource.RLIMIT_CPU, (self._cpu_time_limit, self._cpu_time_limit))
+                resource.setrlimit(resource.RLIMIT_AS, (self._memory_limit_bytes, self._memory_limit_bytes))
             preexec_fn = limiter
 
         proc = subprocess.Popen(
