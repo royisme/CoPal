@@ -1,0 +1,18 @@
+"""Smoke tests for the $title skill."""
+from __future__ import annotations
+
+from pathlib import Path
+
+from scripts.run import main
+
+
+def test_run_script_prints_identifier(capsys) -> None:
+    """Ensure the generated runner prints the skill identifier."""
+    main([])
+    captured = capsys.readouterr()
+    assert "$skill_id" in captured.out
+
+
+def test_examples_directory_exists() -> None:
+    """Verify the examples directory remains part of the template."""
+    assert Path(__file__).resolve().parent.parent.joinpath("examples").exists()
