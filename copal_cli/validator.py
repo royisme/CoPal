@@ -153,7 +153,11 @@ class FrontMatterValidator:
             logger.error(f"Directory does not exist: {directory}")
             return results
 
-        files = directory.glob(pattern) if recursive else directory.glob(pattern.lstrip("**/"))
+        if recursive:
+            files = directory.glob(pattern)
+        else:
+            simple_pattern = pattern[3:] if pattern.startswith("**/") else pattern
+            files = directory.glob(simple_pattern)
 
         for file_path in sorted(files):
             if file_path.is_file():
