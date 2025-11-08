@@ -90,7 +90,7 @@ class SkillExecutor:
             value = os.environ.get(key)
             if value:
                 tokens.append(value)
-        return [token for token in tokens if token]
+        return tokens
 
     def _redact(self, value: str) -> str:
         if not value:
