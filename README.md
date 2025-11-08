@@ -161,6 +161,46 @@ Running `copal init` creates:
 
 > **Tip**: The `.copal/` directory is maintained by CoPal and rarely needs manual editing. Keep project-specific content in `UserAgents.md` and files it references.
 
+### Skill Lifecycle (Skillization)
+
+CoPal now treats reusable automation as first-class **skills** that can be cataloged, scaffolded, and executed with sandbox guarantees.
+
+#### 1. Explore the Registry
+
+```bash
+copal skill registry            # List configured registries
+copal skill search lint         # Search skills by tag, owner, or capability
+```
+
+By default CoPal ships with a local registry file (`.copal/registry.yaml`) that mirrors remote sources. Projects can point to internal registries via `COPAL_SKILL_REGISTRY`.
+
+#### 2. Scaffold and Generate `prelude.md`
+
+```bash
+copal skill scaffold sample/hello-world --target skills/sample
+copal skill scaffold sample/hello-world --prelude prelude.md
+```
+
+The scaffold command copies the skill manifest, entrypoint prompt, and guardrail policies into your workspace. Adding `--prelude <path>` generates a curated `prelude.md` that summarizes inputs, dependencies, and environment switches for downstream AI assistants.
+
+#### 3. Execute with Sandbox Guarantees
+
+```bash
+copal skill exec sample/hello-world --prelude prelude.md --sandbox reuse
+```
+
+`copal skill exec` shells out to the declared runner (CLI, MCP tool, or script) while enforcing the sandbox mode published in the manifest. Sandboxes can be `replay` (read-only dry run), `reuse` (cached isolated environment), or `fresh` (new container per run). CoPal refuses to run a skill if the requested sandbox is weaker than the manifest requires.
+
+#### 4. Reuse a Sample Skill End-to-End
+
+1. `copal skill search markdown` → identify `sample/doc-lint`.
+2. `copal skill scaffold sample/doc-lint --target skills/doc-lint --prelude prelude.md` → fetch assets and generate the prelude hand-off.
+3. Review `skills/doc-lint/skill.yaml` to customize arguments (e.g., target docs directory).
+4. `copal skill exec sample/doc-lint --prelude prelude.md --args "--path docs/"` → run inside its declared sandbox.
+5. Capture the resulting `usage/` logs and reference them in your PR summary.
+
+Because `prelude.md` travels with the task hand-off, downstream contributors can rerun the same skill without re-reading the entire repository context.
+
 ### Customization
 
 Projects can customize by:
@@ -390,6 +430,46 @@ copal validate --target .copal/global --verbose
 4. **引导 AI 助手** 先读取 `.copal/global/` 模板，然后读取 `UserAgents.md`
 
 > **提示**：`.copal/` 目录由 CoPal 维护，很少需要手动编辑。将项目专属内容保存在 `UserAgents.md` 及其引用的文件中。
+
+### 技能全流程（Skillization）
+
+CoPal 将可复用的自动化封装为**技能**，支持注册、检索、脚手架与沙箱执行。
+
+#### 1. 浏览技能注册表
+
+```bash
+copal skill registry            # 查看已配置的注册表
+copal skill search lint         # 通过标签、所有者或能力检索技能
+```
+
+默认提供 `.copal/registry.yaml` 本地镜像，可通过 `COPAL_SKILL_REGISTRY` 指向企业内网或私有源。
+
+#### 2. 脚手架与生成 `prelude.md`
+
+```bash
+copal skill scaffold sample/hello-world --target skills/sample
+copal skill scaffold sample/hello-world --prelude prelude.md
+```
+
+脚手架命令会复制技能清单、入口提示、守卫策略。增加 `--prelude <路径>` 可自动生成 `prelude.md`，汇总输入、依赖和环境开关，方便后续 AI 助手直接引用。
+
+#### 3. 在沙箱中执行
+
+```bash
+copal skill exec sample/hello-world --prelude prelude.md --sandbox reuse
+```
+
+`copal skill exec` 会调用技能声明的运行器（CLI、MCP 工具或脚本），并强制应用清单中声明的沙箱级别。支持的沙箱模式包括 `replay`（只读回放）、`reuse`（复用隔离环境）、`fresh`（每次新容器）。若请求的沙箱弱于清单要求，CoPal 会拒绝执行。
+
+#### 4. 端到端复用示例
+
+1. `copal skill search markdown` → 找到 `sample/doc-lint`。
+2. `copal skill scaffold sample/doc-lint --target skills/doc-lint --prelude prelude.md` → 拉取资源并生成交接文件。
+3. 查看 `skills/doc-lint/skill.yaml`，按项目需求调整参数（如扫描目录）。
+4. `copal skill exec sample/doc-lint --prelude prelude.md --args "--path docs/"` → 在声明的沙箱中运行。
+5. 收集 `usage/` 日志，并在最终交付或 PR 总结中引用。
+
+通过标准化的 `prelude.md`，后续贡献者无需重新阅读仓库上下文即可复用同一技能。
 
 ### 自定义
 

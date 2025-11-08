@@ -17,7 +17,7 @@ updated: 2025-10-31
 
 - `core/`：全局原则与环境约束；
 - `roles/`：通用角色 Playbook（Planner、Implementer、Reviewer 等）；
-- `workflows/`：跨角色工作流，如规划→实施、实施循环、审查发布；
+- `workflows/`：跨角色工作流，如规划→实施、实施循环、技能全流程、审查发布；
 - `toolsets/cli/`：常见 CLI 指南；
 - `toolsets/project/`：通用工具发现、文档检索辅助；
 - `toolsets/agent/`：CoPal 自带的守卫/脚本示例；
