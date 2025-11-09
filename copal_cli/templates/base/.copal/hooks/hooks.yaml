@@ -1,0 +1,26 @@
+# CoPal Hooks Configuration
+# Version 1.0
+
+version: 1
+
+rules:
+  # Context7 hooks for analysis stage
+  - id: context7-analysis
+    stage: analysis
+    any_mcp: ["context7"]
+    inject:
+      - "mcp/context7/usage.analysis.md"
+
+  # Context7 hooks for planning stage
+  - id: context7-plan
+    stage: plan
+    any_mcp: ["context7"]
+    inject:
+      - "mcp/context7/usage.plan.md"
+
+  # Active-file and file-tree hooks for implementation stage
+  - id: implement-active-context
+    stage: implement
+    all_mcp: ["active-file", "file-tree"]
+    inject:
+      - "mcp/active-file/usage.implement.md"

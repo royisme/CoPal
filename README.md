@@ -19,11 +19,14 @@ CoPal (Command-line Orchestration Playbook for AI coders) is a universal collabo
 
 - **Universal Knowledge Framework**: Standardized templates for roles, workflows, and tool guidance with YAML front matter for fast LLM retrieval
 - **CLI Initialization Tool**: `copal init` command to bootstrap projects with standard templates
+- **Workflow Management (v0.1)**: Complete 6-stage workflow (Analyze → Spec → Plan → Implement → Review → Commit)
+- **Prompt Generation Pipeline**: Automatic prompt rendering with role templates and MCP hook injection
+- **MCP Hook System**: Dynamic enhancement based on available Model Context Protocol tools
 - **Customization Overlay**: Projects maintain their specific requirements through `UserAgents.md` and related documentation
 - **MCP/Plugin Integration**: Built-in support for Model Context Protocol and CLI plugin discovery
 - **Zero Dependencies**: Pure Python standard library implementation
 
-> **Current Status**: This repository is in prototype phase, focusing on directory design and initialization workflow. It can be extended to a full Python package or npm tool as needed.
+> **Current Status (v0.1)**: Production-ready workflow orchestration system with comprehensive CLI commands, MCP integration, and prompt generation capabilities. See [What's New in v0.1](#whats-new-in-v01) below.
 
 ### Why CoPal?
 
@@ -42,6 +45,53 @@ CoPal solves these by providing:
 3. **Discoverable Tools**: Structured guidance for CLI tools and MCP integration
 4. **Safety First**: Built-in guardrails and approval process requirements
 5. **Project Customization**: Easy override mechanism for project-specific needs
+
+### What's New in v0.1
+
+CoPal v0.1 introduces a complete workflow orchestration system:
+
+**6-Stage Workflow:**
+- `copal analyze` - Understand the problem and collect information
+- `copal spec` - Create task specifications with acceptance criteria
+- `copal plan` - Develop executable implementation plans
+- `copal implement` - Generate patch notes and code modifications
+- `copal review` - Quality assessment and PR preparation
+- `copal commit` - Record workflow metadata
+
+**Prompt Generation System:**
+- Automatic prompt rendering from role templates
+- Runtime header with stage info and expected outputs
+- Task metadata injection (title, goals, constraints)
+- Generates `.copal/runtime/<stage>.prompt.md` files for Codex
+
+**MCP Hook Mechanism:**
+- Configure available MCPs via `.copal/mcp-available.json`
+- Conditional injection based on `hooks.yaml` rules
+- Built-in hooks for Context7 (analysis/plan) and active-file/file-tree (implement)
+- Extensible hook system for custom MCP tools
+
+**System Commands:**
+- `copal mcp ls` - List available MCP tools
+- `copal status` - Show workflow state and suggest next steps
+- `copal resume` - Resume interrupted workflows
+
+**Directory Structure:**
+```
+.copal/
+├── mcp-available.json          # MCP configuration
+├── hooks/
+│   ├── hooks.yaml              # Hook routing rules
+│   └── mcp/                    # MCP-specific injection blocks
+├── runtime/                    # Generated prompts (for Codex to read)
+│   ├── analysis.prompt.md
+│   ├── spec.prompt.md
+│   └── ...
+└── artifacts/                  # Codex outputs
+    ├── analysis.md
+    ├── task_spec.md
+    ├── plan.md
+    └── ...
+```
 
 ### Architecture
 
@@ -81,6 +131,8 @@ The `.copal/global/knowledge-base/` provides reusable templates:
 - `information-architecture.md` - Metadata structure and organization
 
 **Role Playbooks** (`roles/`)
+- `analyst.md` - Problem understanding and information gathering
+- `specifier.md` - Task specification with scope and acceptance criteria
 - `planner.md` - Requirements analysis, task breakdown, risk assessment
 - `implementer.md` - Code execution, testing, and validation
 - `reviewer.md` - Quality assurance and release preparation
@@ -119,6 +171,36 @@ cd /path/to/your/project
 copal init --target .
 ```
 
+**Run the workflow**:
+```bash
+# 1. Analyze the task
+copal analyze --title "Add user authentication" --goals "Implement JWT login" --constraints "Zero dependencies"
+
+# 2. Codex reads .copal/runtime/analysis.prompt.md and produces .copal/artifacts/analysis.md
+
+# 3. Create specification
+copal spec
+
+# 4. Create plan
+copal plan
+
+# 5. Implement changes
+copal implement
+
+# 6. Review and prepare PR
+copal review
+
+# 7. Commit workflow
+copal commit
+```
+
+**Check status**:
+```bash
+copal status           # Show workflow state
+copal mcp ls          # List available MCPs
+copal resume          # Resume interrupted workflow
+```
+
 **Preview changes without writing files (dry-run)**:
 ```bash
 copal init --target . --dry-run
@@ -144,22 +226,44 @@ copal validate --target .copal/global --verbose
 
 Running `copal init` creates:
 
-- `AGENTS.md` - Navigation index for AI assistants
+- `AGENTS.md` - Complete workflow navigation for AI assistants
 - `UserAgents.md` - Project-specific customization template
 - `.copal/global/` - Universal knowledge base directory
+- `.copal/hooks/` - MCP hook rules and injection blocks
+- `.copal/mcp-available.json` - MCP configuration (example with context7, active-file, file-tree)
 
 ### Quick Start Guide
 
 1. **Install CoPal** in your development environment
-2. **Run initialization** in your project root
-3. **Customize** `UserAgents.md` with project-specific information:
-   - Project structure and tech stack
-   - Role-specific requirements
-   - Common commands (build, test, deploy)
-   - Security policies
-4. **Guide AI assistants** to read `.copal/global/` templates first, then `UserAgents.md`
+   ```bash
+   pip install -e ./CoPal
+   ```
 
-> **Tip**: The `.copal/` directory is maintained by CoPal and rarely needs manual editing. Keep project-specific content in `UserAgents.md` and files it references.
+2. **Initialize in your project**
+   ```bash
+   cd /path/to/your/project
+   copal init
+   ```
+
+3. **Configure MCPs** (optional)
+   Edit `.copal/mcp-available.json` to list available MCP tools
+
+4. **Start a workflow**
+   ```bash
+   copal analyze --title "Your task" --goals "Goals" --constraints "Constraints"
+   # Codex reads .copal/runtime/analysis.prompt.md
+   # Codex produces .copal/artifacts/analysis.md
+   
+   copal spec    # Next stage
+   copal plan    # And so on...
+   ```
+
+5. **Monitor progress**
+   ```bash
+   copal status  # Check workflow state
+   ```
+
+> **Tip**: The `.copal/runtime/` directory contains prompts for Codex to read. The `.copal/artifacts/` directory contains Codex outputs. Keep project-specific content in `UserAgents.md`.
 
 ### Skill Lifecycle (Skillization)
 
@@ -232,21 +336,34 @@ CoPal integrates with:
 
 ### Roadmap
 
-Completed features:
+**v0.1 Completed (Current):**
 - ✅ `copal init` command with template installation
+- ✅ 6-stage workflow commands (analyze/spec/plan/implement/review/commit)
+- ✅ Prompt generation pipeline with role templates
+- ✅ MCP hook system with conditional injection
+- ✅ System commands (mcp ls/status/resume)
 - ✅ `--dry-run` option for previewing changes
 - ✅ `--verbose` flag for detailed logging
 - ✅ `copal validate` command for YAML front matter validation
 - ✅ Comprehensive test suite with pytest
 - ✅ Full docstring documentation
+- ✅ Zero dependencies implementation
 
-Future enhancements planned:
+**v0.2 Planned:**
+- [ ] Neo4j Community integration for knowledge graphs
+- [ ] `copal graph export` (CSV + schema.cypher)
+- [ ] Optional `copal graph sync` (bolt connection)
+- [ ] Context Pack system (summary + handle, context budget)
+- [ ] Guardian-lite (≤2 self-check loops in implement stage)
+- [ ] REQUEST_MCP negotiation loop (Codex → refresh hooks)
+
+**Future enhancements:**
 - [ ] Publish to PyPI (`pip install copal-cli`)
 - [ ] Add `copal update` command to sync templates
 - [ ] Add `copal doctor` health check command
 - [ ] Support more CLI tools (Cursor CLI, Gemini CLI)
 - [ ] Multi-language documentation support
-- [ ] Add YAML library support for complex structures
+- [ ] Web UI for workflow visualization
 
 ### Contributing
 
@@ -289,11 +406,14 @@ CoPal（Command-line Orchestration Playbook for AI coders）是一套面向终�
 
 - **通用知识骨架**：角色、工作流、工具指引的统一模板，使用 YAML front matter 便于 LLM 快速检索
 - **CLI 初始化工具**：`copal init` 命令将模板复制到目标仓库，快速启动项目
+- **工作流管理（v0.1）**：完整的 6 阶段工作流（Analyze → Spec → Plan → Implement → Review → Commit）
+- **Prompt 生成管线**：自动渲染角色模板并注入 MCP hook
+- **MCP Hook 系统**：基于可用的模型上下文协议工具动态增强
 - **自定义覆盖机制**：项目通过 `UserAgents.md` 及相关文档维护专属需求
 - **MCP/插件整合**：内置对模型上下文协议（MCP）和 CLI 插件发现的支持
 - **零依赖设计**：纯 Python 标准库实现，无外部依赖
 
-> **当前状态**：本仓库处于原型阶段，核心是目录设计与初始化流程。可根据需要扩展为完整的 Python 包或 npm 工具。
+> **当前状态（v0.1）**：生产就绪的工作流编排系统，具备完整的 CLI 命令、MCP 集成和 Prompt 生成能力。详见下方 [v0.1 新特性](#v01-新特性)。
 
 ### 为什么选择 CoPal？
 
@@ -312,6 +432,53 @@ CoPal 通过以下方式解决这些问题：
 3. **可发现的工具**：为 CLI 工具和 MCP 集成提供结构化指引
 4. **安全优先**：内置防护机制和审批流程要求
 5. **项目定制化**：轻松覆盖项目特定需求
+
+### v0.1 新特性
+
+CoPal v0.1 引入了完整的工作流编排系统：
+
+**6 阶段工作流：**
+- `copal analyze` - 理解问题并收集信息
+- `copal spec` - 创建带验收标准的任务规格说明
+- `copal plan` - 制定可执行的实施计划
+- `copal implement` - 生成补丁说明和代码修改建议
+- `copal review` - 质量评估和 PR 准备
+- `copal commit` - 记录工作流元数据
+
+**Prompt 生成系统：**
+- 从角色模板自动渲染 Prompt
+- 包含阶段信息和期望产物的运行时头部
+- 任务元数据注入（标题、目标、约束条件）
+- 为 Codex 生成 `.copal/runtime/<stage>.prompt.md` 文件
+
+**MCP Hook 机制：**
+- 通过 `.copal/mcp-available.json` 配置可用 MCP
+- 基于 `hooks.yaml` 规则进行条件注入
+- 内置 Context7（analysis/plan）和 active-file/file-tree（implement）的 hook
+- 可扩展的 hook 系统支持自定义 MCP 工具
+
+**系统命令：**
+- `copal mcp ls` - 列出可用的 MCP 工具
+- `copal status` - 显示工作流状态并建议下一步
+- `copal resume` - 恢复中断的工作流
+
+**目录结构：**
+```
+.copal/
+├── mcp-available.json          # MCP 配置
+├── hooks/
+│   ├── hooks.yaml              # Hook 路由规则
+│   └── mcp/                    # MCP 专用注入块
+├── runtime/                    # 生成的 Prompt（供 Codex 读取）
+│   ├── analysis.prompt.md
+│   ├── spec.prompt.md
+│   └── ...
+└── artifacts/                  # Codex 产出
+    ├── analysis.md
+    ├── task_spec.md
+    ├── plan.md
+    └── ...
+```
 
 ### 架构设计
 
@@ -351,6 +518,8 @@ CoPal/
 - `information-architecture.md` - 元数据结构和组织
 
 **角色手册** (`roles/`)
+- `analyst.md` - 问题理解和信息收集
+- `specifier.md` - 带范围和验收标准的任务规格说明
 - `planner.md` - 需求分析、任务拆解、风险评估
 - `implementer.md` - 代码执行、测试和验证
 - `reviewer.md` - 质量保证和发布准备
