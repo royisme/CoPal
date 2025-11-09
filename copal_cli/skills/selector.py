@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List
+from typing import Iterable
 
 from .registry import SkillMetadata
 
@@ -21,10 +21,10 @@ class SkillSelector:
     def __init__(self, skills: Iterable[SkillMetadata]):
         self._skills = list(skills)
 
-    def search(self, query: str, *, language: str | None = None) -> List[SkillMatch]:
+    def search(self, query: str, *, language: str | None = None) -> list[SkillMatch]:
         """Return skills that match the query and optional language filter."""
         normalized_query = query.lower()
-        matches: List[SkillMatch] = []
+        matches: list[SkillMatch] = []
         for skill in self._skills:
             if language and skill.language != language:
                 continue
