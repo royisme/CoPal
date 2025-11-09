@@ -1,36 +1,30 @@
-"""Skill selection helpers."""
 from __future__ import annotations
-
-
 
 import difflib
 import math
 import re
 from collections import Counter
 from dataclasses import dataclass
+from typing import Iterable, List, Sequence, Tuple
 
-from typing import List, Sequence, Tuple, Iterable, List
+from .registry import SkillMeta, SkillMetadata
 
-
-from .registry import SkillMeta
-from .registry import SkillMetadata
 
 @dataclass(slots=True)
 class SkillMatch:
-    """Represents a search result."""
+    """Represents a simple substring search result."""
 
     skill: SkillMetadata
     score: int
 
 
 class SkillSelector:
-    """Simple substring based skill selector."""
+    """Substring based selector used by the CLI search command."""
 
     def __init__(self, skills: Iterable[SkillMetadata]):
         self._skills = list(skills)
 
     def search(self, query: str, *, language: str | None = None) -> list[SkillMatch]:
-        """Return skills that match the query and optional language filter."""
         normalized_query = query.lower()
         matches: list[SkillMatch] = []
         for skill in self._skills:
@@ -42,7 +36,6 @@ class SkillSelector:
                 matches.append(SkillMatch(skill=skill, score=score))
         matches.sort(key=lambda match: (-match.score, match.skill.name))
         return matches
-
 
 
 def _tokenise(text: str) -> List[str]:

@@ -1,22 +1,23 @@
-# 项目自定义指引
+# Project Customisation Guide
 
-该目录用于存放**项目专属**的角色指引、流程说明、技术栈规范等内容。建议结构：
+Use this directory to store project-specific role guidance, workflows, and tech-stack notes.
+
+Suggested structure:
 
 ```
-UserAgents.md                        # 项目自定义入口
-docs/agents/                         # 供示例使用的扩展文档（可自定义路径）
-└── knowledge-base/                  # 如需覆盖通用模板，可复制结构
-    ├── core/
+UserAgents.md                        # Entry point for project-specific guidance
+docs/agents/                         # Optional directory for extended docs
+└── knowledge-base/                  # Mirror global templates if you need overrides
     ├── roles/
     ├── workflows/
     └── toolsets/
 ```
 
-推荐步骤：
+Recommended steps:
 
-1. `copal init` 后，编辑 `UserAgents.md`，概述项目结构、命令、审批策略；
-2. 如需覆盖默认知识库，可复制 `.copal/global/knowledge-base` 的结构到 `docs/agents/knowledge-base`；
-3. 在 `UserAgents.md` 中链接上述文档，并在 `AGENTS.md` 的“项目自定义”列指向 `UserAgents.md`；
-4. 将自定义文档纳入版本管理，定期更新以反映最新实践。
+1. After running `copal init`, edit `UserAgents.md` to describe the project structure, commands, and safety policies.
+2. Copy any templates from `.copal/global/knowledge-base/` that you need to override and place them under `docs/agents/knowledge-base/`.
+3. Link those documents from `UserAgents.md` so agents know where to find them.
+4. Keep custom documents under version control and update them as the project evolves.
 
-> 若项目已有既定文档体系，可在此处仅保留链接或索引，确保 agent 可以快速定位信息。
+> If the project already has an established documentation system, this directory can simply contain links or indexes that point the agent to the right resources.

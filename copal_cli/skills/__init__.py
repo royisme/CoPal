@@ -1,8 +1,4 @@
-"""Skill management utilities for the CoPal CLI."""
 from __future__ import annotations
-
-from .registry import Registry, SkillEntry
-from .scaffold import SkillMetadata, scaffold_skill
 
 from .commands import (
     exec_command,
@@ -11,6 +7,9 @@ from .commands import (
     scaffold_command,
     search_command,
 )
+from .executor import SkillExecutor
+from .registry import Registry, RegistryError, SkillMeta
+from .scaffold import SkillMetadata, scaffold_skill
 
 __all__ = [
     "exec_command",
@@ -18,8 +17,10 @@ __all__ = [
     "registry_list_command",
     "scaffold_command",
     "search_command",
+    "SkillExecutor",
     "Registry",
-    "SkillEntry",
+    "RegistryError",
+    "SkillMeta",
     "SkillMetadata",
     "scaffold_skill",
 ]

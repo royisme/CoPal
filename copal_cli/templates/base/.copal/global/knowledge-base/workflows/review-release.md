@@ -2,39 +2,41 @@
 id: workflow-review-release
 origin: copal
 type: workflow
-owner: qa-team
-updated: 2025-10-31
+owner: qa-guild
+updated: 2025-11-03
 ---
 
-# Workflow · 审查与交付
+# Workflow: Review and Release
 
-## 目标
+## Goal
 
-验证实施结果符合需求，准备合并或发布，并沉淀经验。
+Verify that implementation results meet quality standards and prepare the change for release.
 
-## 输入
+## Inputs
 
-- 实施阶段的代码、日志、命令输出
-- Definition of Done 与验收清单
-- CLI 会话统计与权限状态
+- `.copal/artifacts/patch_notes.md`
+- `.copal/artifacts/plan.md`
+- Test reports, logs, and validation artefacts
+- Deployment or release checklists
 
-## 步骤
+## Steps
 
-1. **资料收集**：读取 Implementer 提供的日志、retro、`prelude.md`；确认 CLI `usage`、审批状态。
-2. **复跑验证**：在受控环境重跑测试/构建/发布前检查；如技能可复用，使用 `copal skill exec <id> --prelude prelude.md --sandbox <模式>` 复现关键步骤。
-3. **代码审查**：评估风险点、潜在的安全/性能问题，确认审批策略被遵守。
-4. **交付准备**：生成 review 结果、发布 checklist、回滚方案（如适用）。
-5. **更新记录**：调整任务状态，补充项目文档或 retro 中的经验与待办。
+1. **Audit deliverables** – Compare patch notes against the plan and specification.
+2. **Re-run validation** – Execute critical tests, lint, or build commands to confirm repeatability.
+3. **Assess risk** – Evaluate failure impact, rollback strategies, and monitoring requirements.
+4. **Document feedback** – Capture issues, blockers, or follow-up tasks; assign owners.
+5. **Prepare release notes** – Summarise changes, risks, and testing outcomes for stakeholders.
+6. **Decide status** – Approve, request changes, or block release pending further work.
 
-## 输出
+## Outputs
 
-- Review & QA 报告
-- 验证命令输出
-- 技能复现记录（`prelude.md`、执行日志）
-- 发布或回滚预案
+- Review report with findings and decisions
+- Updated PR draft or release notes
+- Validated test results and logs archived for auditing
 
-## 质控
+## Quality Checks
 
-- 所有问题均有明确处理人或时间表；
-- 项目规范在需要时更新；
-- 审查日志与审批记录妥善保存。
+- [ ] All blocking issues resolved or documented with owners.
+- [ ] Tests and validation steps have been re-run or acknowledged.
+- [ ] Rollback plan and monitoring steps are identified if required.
+- [ ] Release documentation is complete and shared.

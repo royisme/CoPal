@@ -1,36 +1,37 @@
 ---
-id: agents-guardrail-uv
+id: agent-guardrail-uv
 origin: copal
-type: guardrail
-owner: copal-team
-enforcement: optional
-updated: 2025-10-31
+type: agent-script
+owner: automation-guild
+updated: 2025-11-03
 ---
 
-# UV Guardrail 脚本（示例）
+# Guardrail: Enforce `uv` for Python Commands
 
-## 目标
+## Purpose
 
-演示如何在执行终端命令前拦截裸 `python`、`pip` 等敏感调用，并给出 `uv run` / `uv pip` 等安全替代。
+Prevent accidental use of bare `python` or `pip` commands by wrapping them with `uv`. This helps standardise dependency management and execution environments.
 
-## 调用方式
+## Setup
+
+1. Copy `scripts/guardrails/check_shell.py` into your project or reference it directly from `.copal/global/`.
+2. Configure your CLI to execute the guardrail before running shell commands (e.g., via pre-command hooks or wrapper scripts).
+3. Store audit logs under `.copal/global/logs/` or a project-specific path.
+
+## Usage
 
 ```bash
-uv run python .copal/global/knowledge-base/toolsets/agent/scripts/guardrails/check_shell.py --command "python manage.py"
+python scripts/guardrails/check_shell.py --command "python script.py"
+python scripts/guardrails/check_shell.py --command "pip install requests"
+python scripts/guardrails/check_shell.py --snapshot --limit 10
 ```
 
-- `--command`：待校验的单条命令；
-- `--snapshot`：输出最近的违规记录（保存在 `logs/guardrail-history.jsonl`）。
+- Returns exit code `0` when the command passes validation.
+- Returns exit code `1` when the guardrail blocks the command and records an audit entry.
+- Use `--snapshot` to inspect recent violations stored in `logs/guardrail-history.jsonl`.
 
-## 输出示例
+## Customisation Ideas
 
-```
-[违规] detected-python: python manage.py
-[建议] 使用: uv run python manage.py
-```
-
-## 扩展建议
-
-- 可根据项目使用的语言或命令调整匹配规则；
-- 需要钩进 CLI 时，可在 shell profile 或任务脚本中调用；
-- 若项目已有成熟的守卫系统，可忽略此示例。
+- Extend the script to cover language-specific commands (e.g., `npm`, `composer`).
+- Integrate with project logging or incident tracking.
+- Add allowlists per repository or task to balance flexibility and enforcement.

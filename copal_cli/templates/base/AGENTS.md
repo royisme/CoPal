@@ -5,282 +5,255 @@ These instructions are for AI assistants working in this project.
 
 Always open `@/openspec/AGENTS.md` when the request:
 - Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
+- Introduces new capabilities, breaking changes, architecture shifts, or major performance/security work
+- Appears ambiguous and you need the authoritative specification before coding
 
 Use `@/openspec/AGENTS.md` to learn:
 - How to create and apply change proposals
-- Spec format and conventions
+- Specification format and conventions
 - Project structure and guidelines
 
-Keep this managed block so 'openspec update' can refresh the instructions.
+Keep this managed block so `openspec update` can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-# CoPal Workflow - AGENTS 工作流导航
+# CoPal Workflow – Agent Handbook
 
-> 本文件提供 CoPal 工作流的完整导航，帮助 AI 编码助手（Codex）按正确顺序执行任务。
+> This document walks AI coding agents through the CoPal workflow so that every stage is executed in the correct order.
 
-## 工作流概述
+## Workflow Overview
 
-CoPal 将任务分为 6 个阶段，每个阶段由 CLI 命令触发，生成对应的 Prompt 文件供 Codex 阅读和执行：
+CoPal splits the lifecycle into six stages. Each stage is triggered by a CLI command that generates a prompt file for the assistant to follow:
 
-1. **Analyze** - 分析任务，理解问题
-2. **Spec** - 形成任务说明书
-3. **Plan** - 制定可执行计划
-4. **Implement** - 产出补丁和修改建议
-5. **Review** - 评估质量，生成 PR
-6. **Commit** - 记录工作流元数据
+1. **Analyze** – Understand the task and gather context
+2. **Spec** – Draft a precise task specification
+3. **Plan** – Produce an actionable implementation plan
+4. **Implement** – Generate patch notes and change summaries
+5. **Review** – Evaluate quality and prepare PR content
+6. **Commit** – Record workflow metadata and close the loop
 
-## 详细工作流
+## Detailed Stages
 
-### 1. Analyze（分析阶段）
+### 1. Analyze
 
-**执行命令：**
+**Command**
 ```bash
-copal analyze --title "<任务标题>" --goals "<目标>" --constraints "<约束条件>"
+copal analyze --title "<title>" --goals "<goals>" --constraints "<constraints>"
 ```
 
-**Codex 任务：**
-1. 读取生成的 Prompt 文件：`.copal/runtime/analysis.prompt.md`
-2. 按照 Prompt 指引，分析任务并理解问题
-3. 产出分析报告：`.copal/artifacts/analysis.md`
+**Agent duties**
+1. Read `.copal/runtime/analysis.prompt.md`.
+2. Follow the prompt to understand the task and highlight unknowns.
+3. Save the report to `.copal/artifacts/analysis.md`.
 
-**产物内容：**
-- 问题理解摘要
-- 信息收集点清单
-- 待澄清事项列表
-- 背景与上下文说明
+**Deliverable**
+- Summary of the problem
+- Information gaps to investigate
+- Questions to clarify with stakeholders
+- Relevant background context
 
-**下一步：** 完成后执行 `copal spec`
+**Next step**: `copal spec`
 
 ---
 
-### 2. Spec（规格阶段）
+### 2. Spec
 
-**执行命令：**
+**Command**
 ```bash
 copal spec
 ```
 
-**Codex 任务：**
-1. 读取生成的 Prompt 文件：`.copal/runtime/spec.prompt.md`
-2. 基于分析报告（`.copal/artifacts/analysis.md`），形成任务说明书
-3. 产出规格说明：`.copal/artifacts/task_spec.md`
+**Agent duties**
+1. Read `.copal/runtime/spec.prompt.md`.
+2. Convert the analysis into a formal specification.
+3. Save the spec to `.copal/artifacts/task_spec.md`.
 
-**产物内容：**
-- 任务范围定义（Scope）
-- 不在范围内的内容（Out-of-scope）
-- 接口与数据结构定义
-- 验收标准（Acceptance Criteria）
-- 成功指标与约束条件
+**Deliverable**
+- Scope
+- Out-of-scope items
+- Interfaces/data contracts
+- Acceptance criteria and success metrics
 
-**下一步：** 完成后执行 `copal plan`
+**Next step**: `copal plan`
 
 ---
 
-### 3. Plan（计划阶段）
+### 3. Plan
 
-**执行命令：**
+**Command**
 ```bash
 copal plan
 ```
 
-**Codex 任务：**
-1. 读取生成的 Prompt 文件：`.copal/runtime/plan.prompt.md`
-2. 基于任务说明书（`.copal/artifacts/task_spec.md`），制定可执行计划
-3. 产出计划文档：`.copal/artifacts/plan.md`
+**Agent duties**
+1. Read `.copal/runtime/plan.prompt.md`.
+2. Break the specification into executable steps.
+3. Save the plan to `.copal/artifacts/plan.md`.
 
-**产物内容：**
-- 详细的实施步骤
-- 涉及的文件清单
-- 风险评估与缓解策略
-- 回滚方案
+**Deliverable**
+- Ordered implementation steps
+- File and dependency list
+- Risk assessment and mitigations
+- Rollback ideas if something fails
 
-**MCP 增强：**
-- 如果启用了 `context7` MCP，Prompt 会注入文档查询指引
+**MCP enhancement**
+- When the `context7` MCP is available the prompt adds documentation discovery guidance.
 
-**下一步：** 完成后执行 `copal implement`
+**Next step**: `copal implement`
 
 ---
 
-### 4. Implement（实施阶段）
+### 4. Implement
 
-**执行命令：**
+**Command**
 ```bash
 copal implement
 ```
 
-**Codex 任务：**
-1. 读取生成的 Prompt 文件：`.copal/runtime/implement.prompt.md`
-2. 基于计划文档（`.copal/artifacts/plan.md`），产出修改建议
-3. 产出补丁说明：`.copal/artifacts/patch_notes.md`（及代码补丁）
+**Agent duties**
+1. Read `.copal/runtime/implement.prompt.md`.
+2. Produce patch notes and testing guidance based on the plan.
+3. Save notes to `.copal/artifacts/patch_notes.md`.
 
-**产物内容：**
-- 修改的文件列表
-- 每个文件的修改摘要
-- 测试建议和覆盖率说明
-- 需要更新的文档
-
-**MCP 增强：**
-- 如果同时启用了 `active-file` 和 `file-tree` MCP，Prompt 会注入文件定位和修改指引
-
-**下一步：** 完成后执行 `copal review`
+**Deliverable**
+- Files touched and rationale
+- Summary of code changes
+- Recommended tests and coverage notes
+- Documentation follow-ups
 
 ---
 
-### 5. Review（审查阶段）
+### 5. Review
 
-**执行命令：**
+**Command**
 ```bash
 copal review
 ```
 
-**Codex 任务：**
-1. 读取生成的 Prompt 文件：`.copal/runtime/review.prompt.md`
-2. 评估实施质量，检查一致性和覆盖率
-3. 产出审查报告：`.copal/artifacts/review_report.md` 和 `.copal/artifacts/pr_draft.md`
-4. **计划优先**：使用 `update_plan` 跟踪多步骤任务。
-5. **命令安全**：遵循所用 CLI 的审批/沙箱策略，禁止绕过人工确认的高危操作。
-6. **日志可追溯**：保留关键命令输出或引用 CLI 的 `usage/logs`。
-7. **知识维护**：发现缺失指引请更新 `UserAgents.md` 或相关项目文档，并记录在 retro。
-8. **技能沙箱**：执行 `copal skill exec` 时必须提供与技能清单一致或更严格的 `--sandbox`，并将 `prelude.md` 随任务共享。
+**Agent duties**
+1. Read `.copal/runtime/review.prompt.md`.
+2. Audit the patch, risks, and compliance.
+3. Save the review to `.copal/artifacts/review_report.md` and draft PR copy to `.copal/artifacts/pr_draft.md`.
 
-**产物内容：**
-- 一致性评估（与计划和规格的对照）
-- 测试覆盖率分析
-- 风险评估与建议
-- PR 描述草案
+**Deliverable**
+- Quality findings and blockers
+- Test results or retest recommendations
+- PR summary draft
+- Release or rollback considerations
 
-| 触发关键词 / 场景 | CoPal 默认模块 | 用户自定义 |
-| --- | --- | --- |
-| “proposal” / “spec” / “plan” | `.copal/global/knowledge-base/workflows/plan-to-implement.md` | 请在 `UserAgents.md` 指明项目流程 |
-| “实现” / “执行测试” | `.copal/global/knowledge-base/roles/implementer.md` | `UserAgents.md` 或其他项目文档 |
-| “审核” / “发布” | `.copal/global/knowledge-base/roles/reviewer.md` | 同上 |
-| “Codex” / “Claude Code” / “Copilot” | `.copal/global/knowledge-base/toolsets/cli/*.md` | 若有内部工具请在 `UserAgents.md` 补充 |
-| “skill” / “prelude” / “scaffold” | `.copal/global/knowledge-base/workflows/skill-lifecycle.md`<br>`toolsets/cli/copal-cli.md` | 在此列出项目特有技能或注册表 |
-| “MCP” / “插件” | `.copal/global/knowledge-base/toolsets/project/mcp-discovery.md` | |
+**Next step**: `copal commit`
 
 ---
 
-### 6. Commit（提交阶段）
+### 6. Commit
 
-**执行命令：**
+**Command**
 ```bash
-copal commit [--task-id <任务ID>]
+copal commit [--task-id <task-id>]
 ```
 
-**产物：**
-- 元数据文件：`.copal/artifacts/commit.json`
-- 记录任务 ID、时间戳、产物列表
+**Deliverable**
+- `.copal/artifacts/commit.json` containing task metadata, timestamps, and generated artifacts.
 
-**完成：** 工作流已完成，可以开始新任务
+**Outcome**
+- Workflow is complete. Start a new task with `copal analyze`.
 
 ---
 
-## 系统命令
+## System Commands
 
-### MCP 工具管理
+### MCP tooling
 
 ```bash
-# 列出可用的 MCP 工具
 copal mcp ls
 ```
 
-查看 `.copal/mcp-available.json` 中配置的 MCP 工具。
+Shows the contents of `.copal/mcp-available.json` so you know which Model Context Protocol tools are ready to use.
 
-### 状态查看
+### Status snapshot
 
 ```bash
-# 显示当前工作流状态
 copal status
 ```
 
-显示：
-- 可用的 MCP 工具
-- 已生成的 Prompt 文件
-- 已产出的 Artifacts
-- 建议的下一步命令
+Displays:
+- Available MCP tools
+- Generated prompt files in `.copal/runtime/`
+- Artifacts collected in `.copal/artifacts/`
+- Suggested next command based on missing artifacts
 
-### 恢复工作流
+### Resume workflow
 
 ```bash
-# 恢复中断的工作流
 copal resume
 ```
 
-显示最近的阶段和 Prompt 文件，帮助 Codex 从中断处继续。
+Lists the latest stage prompt so that the agent can pick up where the workflow stopped.
 
 ---
 
-## MCP 集成说明
+## MCP Integration
 
-CoPal 支持 MCP (Model Context Protocol) 集成，根据可用的 MCP 工具动态注入相关指引。
+CoPal supports Model Context Protocol hooks that conditionally inject tool guidance into prompts.
 
-### 配置 MCP
+### Configure MCP
 
-在项目根目录创建 `.copal/mcp-available.json`：
+Create `.copal/mcp-available.json` in the project root:
 
 ```json
 ["context7", "active-file", "file-tree"]
 ```
 
-### MCP 增强效果
+### Built-in behavior
 
-- **context7**: 在 `analyze` 和 `plan` 阶段注入文档查询指引
-- **active-file + file-tree**: 在 `implement` 阶段注入文件定位和修改指引
+- **context7** – Adds documentation lookup tips to the Analyze and Plan stages.
+- **active-file + file-tree** – Adds navigation guidance to the Implement stage.
 
 ---
 
-## 快速开始示例
+## Quick Start Example
 
 ```bash
-# 1. 初始化 CoPal（仅需一次）
+# 1. Initialise CoPal (once per repository)
 copal init
 
-# 2. 配置 MCP（可选）
+# 2. Optional: declare MCP tools
 echo '["context7", "active-file", "file-tree"]' > .copal/mcp-available.json
 
-# 3. 开始一个新任务
-copal analyze --title "添加用户认证功能" --goals "实现 JWT 登录" --constraints "零依赖"
+# 3. Start a new task
+copal analyze --title "Add user authentication" --goals "Implement JWT login" --constraints "Zero new runtime deps"
 
-# 4. Codex 读取 .copal/runtime/analysis.prompt.md 并产出 analysis.md
+# 4. Have the agent read .copal/runtime/analysis.prompt.md and produce analysis.md
 
-# 5. 依次执行后续阶段
+# 5. Continue the remaining stages
 copal spec
 copal plan
 copal implement
 copal review
 copal commit
 
-# 6. 查看状态
+# 6. Inspect status at any time
 copal status
 ```
 
 ---
 
-## 全局约束
-1. 阅读本文件后，进入 `.copal/global/knowledge-base/README.md` 熟悉目录结构；
-2. 根据任务类型加载 `roles/` 中的 Playbook 并完成“启动步骤”；
-3. 运行 `mcp tools list`、配置 CLI 审批/沙箱；
-4. `copal skill registry` / `copal skill search <关键词>` 检查是否存在可复用技能；必要时用 `copal skill scaffold ... --prelude prelude.md` 准备交接文件；
-5. 按 `workflows/` 执行任务，保留日志输出，并在执行技能时记录 `copal skill exec ... --sandbox <模式>` 的参数；
-6. 若需要项目特定说明，请查阅 `UserAgents.md` 或项目自定义文档。
+## Global Guardrails
 
-1. **语言一致**：默认使用中文回复，除非用户另有要求
-2. **计划优先**：使用 `update_plan` 跟踪多步骤任务
-3. **命令安全**：遵循所用 CLI 的审批/沙箱策略，禁止绕过人工确认的高危操作
-4. **日志可追溯**：保留关键命令输出或引用 CLI 的 `usage/logs`
-5. **知识维护**：发现缺失指引请更新 `UserAgents.md` 或相关项目文档
-
-## 项目自定义
-
-初始化后，请在 `UserAgents.md` 中补充：
-- 项目结构和技术栈
-- 关键命令（测试、构建、部署）
-- 安全策略或审批要求
-- 其他项目特定的文档链接
+1. **Consistent language** – Follow the user's requested language. Default to English when not specified.
+2. **Plan first** – Use `update_plan` to track multi-step work before implementing.
+3. **Command safety** – Respect the approval and sandbox policies of the active CLI.
+4. **Traceable logs** – Capture command output or reference CLI usage logs for audit trails.
+5. **Knowledge upkeep** – When guidance is missing, update `UserAgents.md` or related project docs.
 
 ---
 
-> 更新公共模板时请回到 CoPal 仓库提交改动；项目自定义内容在自身仓库维护。
+## Project Customisation
+
+After initialisation, populate `UserAgents.md` with project-specific guidance:
+- Code structure and tech stack
+- Key commands (build, test, deploy)
+- Security policies and approval flows
+- Links to additional documentation
+
+> Keep shared templates in the CoPal repository. Maintain project-specific guidance in your project repo.

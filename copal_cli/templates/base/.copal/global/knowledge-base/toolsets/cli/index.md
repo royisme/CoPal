@@ -1,18 +1,20 @@
 ---
-id: cli-toolset-index
+id: toolset-cli-index
 origin: copal
 type: toolset-index
-owner: integration-team
-updated: 2025-10-31
+owner: enablement-team
+updated: 2025-11-03
 ---
 
-# CLI 工具索引
+# CLI Toolset Index
 
-| id | 工具 | 主要场景 | 强制级别 | 最近更新 |
-| --- | --- | --- | --- | --- |
-| copal-cli | CoPal CLI | 初始化模板、技能注册表、沙箱执行 | baseline | 2025-10-31 |
-| codex-cli | OpenAI Codex CLI | 本地多任务改造、MCP 集成 | recommended | 2025-10-31 |
-| claude-code | Anthropic Claude Code | 深度代码理解、插件化工作流 | recommended | 2025-10-31 |
-| copilot-cli | GitHub Copilot CLI | GitHub 生态、会话式代码执行 | recommended | 2025-10-31 |
+This directory provides quick-reference guides for common AI coding CLIs. Projects can extend or override these documents to reflect their tooling choices.
 
-> 使用任意 CLI 前，请阅读对应说明，配置审批/沙箱、认证和插件。
+## Contents
+
+- `codex-cli.md` – OpenAI Codex CLI usage
+- `claude-code.md` – Anthropic Claude Code CLI usage
+- `copilot-cli.md` – GitHub Copilot CLI usage
+- `copal-cli.md` – CoPal CLI command reference
+
+Each guide covers installation/login, frequently used commands, safety settings, and troubleshooting tips.

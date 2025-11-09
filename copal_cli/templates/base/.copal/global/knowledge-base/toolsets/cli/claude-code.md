@@ -1,58 +1,52 @@
 ---
-id: claude-code
+id: claude-code-cli
 origin: copal
 type: cli-guide
 owner: integration-team
-enforcement: recommended
-updated: 2025-10-31
+updated: 2025-11-03
 ---
 
-# Claude Code CLI 指南
+# Claude Code CLI Guide
 
-## 安装与启动
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude --version
-```
-
-支持的启动方式：
+## Installation and Login
 
 ```bash
-claude                              # 交互式终端
-claude --headless "explain main.js" # 单次命令
-ANTHROPIC_API_KEY=xxx claude        # 指定密钥
-claude --settings ./settings.json   # 自定义配置
+pipx install anthropic-cli  # or pip install anthropic-cli
+anthropic login             # Authenticate with your API key
 ```
 
-## 插件管理
-
-在 CLI 内使用 `/plugin` 系列命令：
+## Launch Modes
 
 ```bash
-/plugin marketplace
-/plugin install <name>
-/plugin enable feature-dev
-/plugin disable feature-dev
-/plugin validate
+anthropic code               # Start interactive Claude Code session
+anthropic code --resume      # Resume the last session
+anthropic code --import <file>  # Seed a session with context
 ```
 
-内置插件示例：`security-guidance`、`pr-review-toolkit`、`feature-dev`、`commit-commands`。
+## Safety Controls
 
-## Git 工作流
+- Enable approval prompts via configuration: `anthropic config set approvals.required true`
+- Restrict file access with `anthropic config set sandbox.mode read-only`
+- Allow specific tools with `anthropic config allow-tool shell("pytest *")`
 
-- Claude 可自动执行 `git status`、`git diff`、新建分支、生成 commit message、推送与 `gh pr create`。
-- 建议人工复核 commit/PR 内容，确保符合团队规范。
+## MCP Integration
 
-## 使用建议
+```bash
+anthropic mcp list
+anthropic mcp install context7
+anthropic mcp info context7
+anthropic mcp remove context7
+```
 
-- 在目标仓库目录启动，保证上下文准确。
-- 对于长流程，先用 headless 模式执行检查，再进入交互调试。
-- 需要 GUI 支持时可安装 VS Code 扩展：`code --install-extension anthropic.claude-code`。
-- 可使用 `/logs` 或默认日志目录查看历史命令。
+## Usage Tips
 
-## 常见问题
+- Start sessions from the repository root to give Claude full context.
+- Use `/plan` or `update_plan` style prompts to keep large tasks organised.
+- Capture session logs with `/logs` and attach key excerpts to reviews or retrospectives.
+- Switch to stricter approval settings before executing destructive commands.
 
-- **插件不可用**：确认插件是否启用或网络可访问 marketplaces。
-- **Git 操作失败**：确保本地 `gh` 或 Git 凭据有效。
-- **设置文件**：`claude --settings` 可定义默认模型、审批策略、文件忽略等。
+## Troubleshooting
+
+- **Authentication errors** – Re-run `anthropic login` and ensure the API key has Claude Code access.
+- **Session drops** – Use `anthropic code --resume` to reopen the previous session state.
+- **Tool execution blocked** – Check sandbox configuration and update `allow-tool` rules if needed.

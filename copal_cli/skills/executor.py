@@ -1,52 +1,46 @@
-"""Skill execution utilities."""
 from __future__ import annotations
 
+import logging
 import os
 import re
-import logging
-from pathlib import Path
 from dataclasses import dataclass
-from typing import Iterable, Sequence
-
-from .sandbox import LocalSandbox, SandboxExecutionError
-
-typing import TextIO
+from pathlib import Path
+from typing import Iterable, Sequence, TextIO
 
 from .registry import SkillMetadata
+from .sandbox import LocalSandbox, SandboxExecutionError
 
 logger = logging.getLogger(__name__)
 
 
-class SkillExecutionError(RuntimeError):
-    """Raised when a skill fails to execute."""
-
-
-class SkillExecutor:
-    """Execute a skill by streaming its entrypoint file."""
+class SkillLogStreamer:
+    """Stream a skill's entrypoint file to a provided text stream."""
 
     def __init__(self, *, stream: TextIO):
-        self.stream = stream
+        self._stream = stream
 
     def execute(self, skill: SkillMetadata, *, sandbox: bool = False) -> None:
-        """Execute the provided skill."""
+        """Write the entrypoint file to the configured stream."""
+
         if skill.requires_sandbox and not sandbox:
             raise PermissionError(
                 f"Skill '{skill.name}' requires sandbox execution. Re-run with --sandbox."
             )
+
         entry_path = Path(skill.path) / skill.entrypoint
         if not entry_path.exists():
             raise FileNotFoundError(entry_path)
+
         logger.debug("Streaming entrypoint %s", entry_path)
-        with entry_path.open("r", encoding="utf-8") as fh:
-            for line in fh:
-                self.stream.write(line.rstrip("\n") + "\n")
-        self.stream.flush()
-"""Skill command executor for CoPal."""
+        with entry_path.open("r", encoding="utf-8") as handle:
+            for line in handle:
+                self._stream.write(line)
+        self._stream.flush()
 
 
 @dataclass(slots=True)
 class ExecutionResult:
-    """Represents the outcome of an execution."""
+    """Represents the outcome of a sandbox execution."""
 
     stdout: str
     stderr: str
@@ -56,7 +50,7 @@ class ExecutionResult:
 
 
 class SkillExecutor:
-    """Parse and execute skill commands via an isolated sandbox."""
+    """Execute bash-prefixed commands within an isolated sandbox."""
 
     BASH_PREFIX = "bash:"
     DEFAULT_ALLOWED_ACTIONS = {"read", "python", "sh", "node"}
@@ -65,6 +59,7 @@ class SkillExecutor:
 
     def __init__(
         self,
+        *,
         sandbox: LocalSandbox | None = None,
         allowed_actions: Iterable[str] | None = None,
         sensitive_env_keys: Sequence[str] | None = None,
@@ -141,4 +136,4 @@ class SkillExecutor:
         return redacted
 
 
-__all__ = ["SkillExecutor", "ExecutionResult"]
+__all__ = ["SkillLogStreamer", "SkillExecutor", "ExecutionResult"]

@@ -8,41 +8,41 @@ updated: 2025-11-03
 
 # Specifier Playbook
 
-## 必读模块
+## Required Reading
 
 - `../core/principles.md`
 - `../core/environment.md`
-- `.copal/artifacts/analysis.md`（分析阶段产物）
+- `.copal/artifacts/analysis.md`
 - `../toolsets/project/mcp-discovery.md`
-- （如需查阅文档）`../toolsets/project/context7-docs.md`
+- Optional: `../toolsets/project/context7-docs.md`
 
-## 启动步骤
+## Kick-off Steps
 
-1. 阅读分析报告（`.copal/artifacts/analysis.md`），理解问题背景和信息收集点。
-2. 执行 `mcp tools list`，确认所需工具可用。
-3. 补充必要的技术调研和上下文收集。
+1. Review the analysis report to understand context and research items.
+2. Run `mcp tools list` to ensure supporting tools are available.
+3. Perform additional technical investigation as needed.
 
-## 执行指引
+## Guidance
 
-- 将模糊的任务需求转化为清晰的、可验收的规格说明。
-- 明确任务范围（Scope）与不在范围内的内容（Out-of-scope）。
-- 定义接口、数据结构、交互方式等技术细节。
-- 制定验收标准（Acceptance Criteria）和成功指标。
-- 不要在此阶段进行具体的实施计划或代码设计。
+- Convert ambiguous requests into clear, verifiable specifications.
+- Define scope and explicitly list what is out of scope.
+- Document interfaces, data structures, and workflow expectations.
+- Capture acceptance criteria and success metrics.
+- Avoid implementation details—leave planning to the next stage.
 
-## 交付物
+## Deliverable
 
-- 任务规格说明书（`.copal/artifacts/task_spec.md`），包含：
-  - 任务范围定义（Scope）
-  - 不在范围内的内容（Out-of-scope）
-  - 接口与数据结构定义
-  - 验收标准（Acceptance Criteria）
-  - 成功指标与约束条件
+- Specification saved to `.copal/artifacts/task_spec.md` including:
+  - Scope
+  - Out-of-scope items
+  - Interface/data definitions
+  - Acceptance criteria
+  - Success metrics and constraints
 
-## 检查清单
+## Checklist
 
-- [ ] 任务范围已清晰定义，边界明确。
-- [ ] 验收标准可测试、可量化。
-- [ ] 接口和数据结构定义完整。
-- [ ] Out-of-scope 项已明确列出，避免范围蔓延。
-- [ ] 规格说明书已保存到 `.copal/artifacts/task_spec.md`。
+- [ ] Scope and boundaries are clearly defined.
+- [ ] Acceptance criteria are testable and measurable.
+- [ ] Interfaces and data contracts are documented.
+- [ ] Out-of-scope items are listed to prevent scope creep.
+- [ ] Specification is saved to `.copal/artifacts/task_spec.md`.
