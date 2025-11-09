@@ -28,6 +28,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 3. **命令安全**：遵循所用 CLI 的审批/沙箱策略，禁止绕过人工确认的高危操作。
 4. **日志可追溯**：保留关键命令输出或引用 CLI 的 `usage/logs`。
 5. **知识维护**：发现缺失指引请更新 `UserAgents.md` 或相关项目文档，并记录在 retro。
+6. **技能沙箱**：执行 `copal skill exec` 时必须提供与技能清单一致或更严格的 `--sandbox`，并将 `prelude.md` 随任务共享。
 
 ## 快速导航
 
@@ -37,6 +38,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 | “实现” / “执行测试” | `.copal/global/knowledge-base/roles/implementer.md` | `UserAgents.md` 或其他项目文档 |
 | “审核” / “发布” | `.copal/global/knowledge-base/roles/reviewer.md` | 同上 |
 | “Codex” / “Claude Code” / “Copilot” | `.copal/global/knowledge-base/toolsets/cli/*.md` | 若有内部工具请在 `UserAgents.md` 补充 |
+| “skill” / “prelude” / “scaffold” | `.copal/global/knowledge-base/workflows/skill-lifecycle.md`<br>`toolsets/cli/copal-cli.md` | 在此列出项目特有技能或注册表 |
 | “MCP” / “插件” | `.copal/global/knowledge-base/toolsets/project/mcp-discovery.md` | |
 
 > 初始化后，请在第三列补充具体的项目文档链接（可放在 `UserAgents.md` 或其它路径）。
@@ -46,8 +48,9 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 1. 阅读本文件后，进入 `.copal/global/knowledge-base/README.md` 熟悉目录结构；
 2. 根据任务类型加载 `roles/` 中的 Playbook 并完成“启动步骤”；
 3. 运行 `mcp tools list`、配置 CLI 审批/沙箱；
-4. 按 `workflows/` 执行任务，保留日志输出；
-5. 若需要项目特定说明，请查阅 `UserAgents.md` 或项目自定义文档。
+4. `copal skill registry` / `copal skill search <关键词>` 检查是否存在可复用技能；必要时用 `copal skill scaffold ... --prelude prelude.md` 准备交接文件；
+5. 按 `workflows/` 执行任务，保留日志输出，并在执行技能时记录 `copal skill exec ... --sandbox <模式>` 的参数；
+6. 若需要项目特定说明，请查阅 `UserAgents.md` 或项目自定义文档。
 
 ## 项目自定义（请在 init 后修改）
 
