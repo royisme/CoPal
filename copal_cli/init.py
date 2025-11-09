@@ -85,7 +85,7 @@ def init_command(*, target: str, force: bool, dry_run: bool = False) -> int:
         logger.info(f"[预览模式] 将创建/覆盖 {copied_count} 个文件/目录")
         logger.info("运行时不带 --dry-run 参数以执行实际操作")
     else:
-        logger.info(f"✓ CoPal 模板已成功安装到 {target_root}")
+        logger.info("✓ CoPal 模板已成功安装到 %s", target_root)
         logger.info('请在 `AGENTS.md` 的"项目自定义"列补充链接，并编辑 `UserAgents.md` 填写项目专属内容。')
 
     return 0

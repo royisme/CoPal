@@ -156,8 +156,8 @@ class FrontMatterValidator:
         if recursive:
             files = directory.glob(pattern)
         else:
-            simple_pattern = pattern[3:] if pattern.startswith("**/") else pattern
-            files = directory.glob(simple_pattern)
+            clean_pattern = pattern[3:] if pattern.startswith("**/") else pattern
+            files = directory.glob(clean_pattern)
 
         for file_path in sorted(files):
             if file_path.is_file():
