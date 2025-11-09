@@ -1,0 +1,32 @@
+"""Runtime entry point for the $title skill."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Any
+
+
+def load_payload(path: Path | None) -> dict[str, Any]:
+    """Load a JSON payload from disk if provided."""
+    if path is None:
+        return {}
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Execute the skill with optional JSON payload."""
+    parser = argparse.ArgumentParser(description="$title skill runner")
+    parser.add_argument("payload", nargs="?", type=Path, help="Path to JSON payload")
+    args = parser.parse_args(argv)
+
+    payload = load_payload(args.payload)
+    print(f"[skill:$skill_id] starting execution")
+    if payload:
+        print(json.dumps(payload, indent=2))
+    print("placeholder implementation - extend scripts/run.py")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

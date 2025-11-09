@@ -20,11 +20,13 @@ updated: 2025-10-31
 
 1. 选择合适的 CLI 并配置审批/沙箱策略（见 `../toolsets/cli/*`）。
 2. 运行 `mcp tools list`，确认任务所需的 MCP 或插件已启用。
-3. 阅读 Planner 的任务清单与 Definition of Done，补充缺失上下文。
+3. 使用 `copal skill search <关键词>` 查验可复用技能；若计划中指明技能 ID，则执行 `copal skill scaffold <id> --prelude prelude.md` 获取最新脚手架。
+4. 阅读 Planner 的任务清单、Definition of Done 以及 `prelude.md`，补充缺失上下文。
 
 ## 执行指引
 
 - 在 CLI 会话内完成代码编辑、测试、Git 操作，并保留命令输出。
+- 通过 `copal skill exec <id> --prelude prelude.md --sandbox <模式>` 调用技能；若需调整参数，先在脚手架目录更新 `skill.yaml` 并同步到 `prelude.md`。
 - 将复杂任务拆分为多次提示或 `codex exec`/`claude --headless` 调用，持续更新 `update_plan`。
 - 若遇到缺少指引的技术细节，可在 `UserAgents.md` 或其它项目文档中记录并补充指引。
 - 使用 CLI 的日志/usage 功能记录操作历史，作为 Review 依据。

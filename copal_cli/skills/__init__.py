@@ -1,5 +1,12 @@
-"""Skill execution utilities for CoPal."""
+"""Skill management utilities for CoPal."""
+from __future__ import annotations
 
-from .executor import SkillExecutor, ExecutionResult
+from .registry import Registry, SkillEntry
+from .scaffold import SkillMetadata, scaffold_skill
 
-__all__ = ["SkillExecutor", "ExecutionResult"]
+__all__ = [
+    "Registry",
+    "SkillEntry",
+    "SkillMetadata",
+    "scaffold_skill",
+]

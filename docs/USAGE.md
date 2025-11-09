@@ -58,3 +58,53 @@ copal init --target .
 - 支持 `copal update`、`copal doctor` 等维护工具；
 - 引入 schema 校验与 front matter 检查脚本；
 - 适配更多 CLI（例如 Cursor CLI、Gemini CLI 等）。
+
+## 7. 技能生命周期（Skillization）
+
+CoPal 新增 `copal skill` 系列命令，用于管理可复用的自动化技能。完整流程如下：
+
+### 7.1 注册表与检索
+
+```bash
+copal skill registry            # 查看已配置的技能注册表
+copal skill search lint         # 按名称、标签、所有者或描述检索
+```
+
+- 默认注册表为 `.copal/registry.yaml`，会定期与远程源同步。
+- 可通过环境变量 `COPAL_SKILL_REGISTRY` 指定额外的企业内网源，或在 `UserAgents.md` 中声明自定义路径。
+
+### 7.2 脚手架与 `prelude.md`
+
+```bash
+copal skill scaffold sample/hello-world --target skills/sample
+copal skill scaffold sample/hello-world --prelude prelude.md
+```
+
+- `--target`：将技能的 `skill.yaml`、入口提示、守卫策略复制到本地目录。
+- `--prelude <路径>`：生成 `prelude.md`，记录输入参数、依赖、沙箱要求与运行说明。建议将该文件与任务说明一起提交，供后续贡献者复用。
+
+### 7.3 沙箱保障
+
+技能清单包含 `sandbox.mode` 字段，支持：
+
+- `replay`：只读模拟，不写入磁盘；
+- `reuse`：复用隔离环境（默认）；
+- `fresh`：每次执行均创建全新容器。
+
+执行时必须提供不弱于清单要求的模式，例如：
+
+```bash
+copal skill exec sample/hello-world --prelude prelude.md --sandbox reuse
+```
+
+若传入的 `--sandbox` 低于清单声明，CLI 将拒绝执行并给出提示。建议在 `prelude.md` 中记录实际使用的模式，便于审计。
+
+### 7.4 执行与复用示例
+
+1. `copal skill search markdown` → 定位 `sample/doc-lint`。
+2. `copal skill scaffold sample/doc-lint --target skills/doc-lint --prelude prelude.md` → 获取脚手架与交接文件。
+3. 编辑 `skills/doc-lint/skill.yaml`，设置 `args.path=docs/`。
+4. `copal skill exec sample/doc-lint --prelude prelude.md --args "--path docs/"` → 在守护的沙箱中运行。
+5. 将生成的 `usage/` 日志和 `prelude.md` 一并附在 PR 描述或回顾笔记中。
+
+通过 `prelude.md` 和统一沙箱策略，团队可实现“写一次脚手架，多次复用执行”的技能化交付。
