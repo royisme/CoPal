@@ -1,9 +1,10 @@
-# Prompt 模板占位
+# Prompt Template Placeholder
 
-这里可存放项目常用的提示语 / Prompt 模板，例如：
+Use this directory for reusable prompts or conversation starters that are specific to your project.
 
-- 代码审查提示
-- 任务规划模板
-- API 规范提取模板
+Example ideas:
+- Code review prompt templates
+- Planning checklists for recurring tasks
+- API contract extraction prompts
 
-建议在模板中引用项目自定义文档，并在 `AGENTS.md` 或角色 Playbook 中注明引用方式。
+Reference your custom documentation and link the templates from `UserAgents.md` or role playbooks so agents know when to use them.

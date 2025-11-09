@@ -1,35 +1,33 @@
 ---
-id: mcp-discovery
+id: toolset-project-mcp-discovery
 origin: copal
-type: tool-discovery
+type: mcp-discovery
 owner: integration-team
-enforcement: recommended
-updated: 2025-10-31
+updated: 2025-11-03
 ---
 
-# MCP 工具发现指引
+# MCP Tool Discovery Guide
 
-## 使用场景
+## When to Use
 
-- 任务开始前确认当前可用的 MCP 工具、资源、模板；
-- 新增/移除 MCP 服务器后更新知识库或项目自定义文档。
+- Before starting a task, confirm which MCP tools, resources, and templates are available.
+- After adding or removing MCP servers, update the knowledge base or project documentation accordingly.
 
-## 快速命令
+## Quick Commands
 
 ```bash
 mcp tools list
-mcp tools show <tool-id>
 mcp resources list
-mcp templates list
+mcp connections status
 ```
 
-## 操作步骤
+## Operating Procedure
 
-1. 在启动阶段运行 `mcp tools list`，记录与默认配置的差异。
-2. 缺少指引时，将结果记录在 `UserAgents.md`（或其他项目文档）并补充使用说明。
-3. 将差异或待补充事项记录到 `retrospectives/`，通知相关负责人。
+1. Run `mcp tools list` at the start of each stage and record differences from the default configuration.
+2. Document missing guidance in `UserAgents.md` (or other project docs) and describe how to access the tools.
+3. Log discrepancies or follow-up actions in `retrospectives/` and notify maintainers.
 
-## 提示
+## Tips
 
-- MCP 查询开销极低，可随时重复执行；
-- 若命令不可用，说明当前环境未启用 MCP，请在项目文档中说明原因。
+- MCP discovery is inexpensive—run it frequently to detect environment drift.
+- If the command fails, note that MCP is disabled in the current environment and document the reason for future reference.

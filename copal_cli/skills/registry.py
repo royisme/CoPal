@@ -1,4 +1,3 @@
-"""Skill registry management utilities."""
 from __future__ import annotations
 
 import json
@@ -6,16 +5,14 @@ import logging
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from pathlib import Path
-
-from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Sequence, Iterable, Iterator
+from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
 class SkillMetadata:
-    """Metadata describing a single skill."""
+    """Metadata describing a single skill entry."""
 
     name: str
     path: Path = field(repr=False, compare=False)
@@ -26,7 +23,6 @@ class SkillMetadata:
     requires_sandbox: bool = False
 
     def to_dict(self) -> dict[str, object]:
-        """Serialise the metadata into a JSON friendly dictionary."""
         return {
             "name": self.name,
             "description": self.description,
@@ -56,41 +52,35 @@ class SkillRegistry:
 
     @property
     def skills(self) -> list[SkillMetadata]:
-        """Return the registry contents as a list."""
         return list(self._skills.values())
 
     def list(self, *, language: str | None = None) -> list[SkillMetadata]:
-        """Return skills filtered by language if specified."""
         if language is None:
             return self.skills
         return [skill for skill in self._skills.values() if skill.language == language]
 
     def get(self, name: str) -> SkillMetadata:
-        """Return metadata for the skill with the given name."""
         if name not in self._skills:
             raise KeyError(name)
         return self._skills[name]
 
     def to_index(self) -> dict[str, object]:
-        """Serialise the registry to a JSON structure."""
         return {"skills": [skill.to_dict() for skill in self._skills.values()]}
 
     def write_index(self) -> Path:
-        """Write the registry index JSON file and return its path."""
         index_path = self.root / "registry.json"
         index_path.parent.mkdir(parents=True, exist_ok=True)
-        with index_path.open("w", encoding="utf-8") as fh:
-            json.dump(self.to_index(), fh, indent=2, ensure_ascii=False)
+        with index_path.open("w", encoding="utf-8") as handle:
+            json.dump(self.to_index(), handle, indent=2, ensure_ascii=False)
         return index_path
 
     @classmethod
     def from_index(cls, root: Path) -> "SkillRegistry":
-        """Load a registry from an existing index file."""
         index_path = Path(root) / "registry.json"
         if not index_path.exists():
             raise FileNotFoundError(index_path)
-        with index_path.open("r", encoding="utf-8") as fh:
-            payload = json.load(fh)
+        with index_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
         skills: list[SkillMetadata] = []
         for item in payload.get("skills", []):
             path = Path(root) / str(item.get("path", item.get("name")))
@@ -115,7 +105,6 @@ class SkillRegistryBuilder:
         self.skills_root = Path(skills_root)
 
     def build(self) -> SkillRegistry:
-        """Scan the skills root and construct a registry."""
         self.skills_root.mkdir(parents=True, exist_ok=True)
         skills: list[SkillMetadata] = []
         for entry in sorted(self.skills_root.iterdir()):
@@ -125,8 +114,8 @@ class SkillRegistryBuilder:
             if not metadata_path.exists():
                 logger.debug("Skipping %s (missing skill.json)", entry)
                 continue
-            with metadata_path.open("r", encoding="utf-8") as fh:
-                payload = json.load(fh)
+            with metadata_path.open("r", encoding="utf-8") as handle:
+                payload = json.load(handle)
             name = str(payload.get("name") or entry.name)
             description = str(payload.get("description", ""))
             language = str(payload.get("language", ""))
@@ -152,7 +141,6 @@ class SkillRegistryBuilder:
         return registry
 
     def build_and_write(self) -> SkillRegistry:
-        """Convenience method to build the registry and persist it."""
         registry = self.build()
         registry.write_index()
         return registry
@@ -163,12 +151,7 @@ class RegistryError(ValueError):
 
 
 def _load_yaml_block(block: str) -> Dict[str, object]:
-    """Parse a minimal subset of YAML for skill metadata.
-
-    The parser first attempts to use :mod:`yaml` if available, falling back to a
-    very small hand-written subset that supports the constructs required by the
-    tests (scalars and simple lists).
-    """
+    """Parse a minimal subset of YAML for skill metadata."""
 
     block = block.strip()
     if not block:
@@ -199,7 +182,6 @@ def _parse_simple_yaml(block: str) -> Dict[str, object]:
                 raise RegistryError("List item found before list key in metadata")
             current_list.append(line[1:].strip())
             continue
-
         if ":" in line:
             key, value = line.split(":", 1)
             key = key.strip()
@@ -210,13 +192,15 @@ def _parse_simple_yaml(block: str) -> Dict[str, object]:
                 current_key = key
                 current_list = None
             elif value:
+                if (value.startswith(') and value.endswith(')) or (value.startswith(") and value.endswith(")):
+                    value = value[1:-1]
                 result[key] = value
                 current_key = key
                 current_list = None
             else:
                 result[key] = []
                 current_key = key
-                current_list = result[key]
+                current_list = result[key]  # type: ignore[assignment]
         else:
             raise RegistryError(f"Unable to parse metadata line: {raw_line!r}")
 
@@ -247,9 +231,15 @@ class SkillMeta:
         if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
             raise RegistryError(f"Tags must be a list of strings in {path}")
 
-        identifier = str(metadata["id"]).strip()
-        name = str(metadata["name"]).strip()
-        description = str(metadata["description"]).strip()
+        def _clean(value: object) -> str:
+            result = str(value).strip()
+            if (result.startswith('"') and result.endswith('"')) or (result.startswith("'") and result.endswith("'")):
+                result = result[1:-1]
+            return result
+
+        identifier = _clean(metadata["id"])
+        name = _clean(metadata["name"])
+        description = _clean(metadata["description"])
 
         if not identifier or not name or not description:
             raise RegistryError(f"Fields id, name, and description must be non-empty in {path}")
@@ -279,33 +269,66 @@ class SkillMeta:
         return " \n".join(part for part in parts if part)
 
 
+@dataclass(frozen=True)
+class SkillEntry:
+    identifier: str
+    name: str
+    description: str
+    tags: tuple[str, ...]
+    path: Path
+
+
 class Registry:
+    """Aggregate registry that normalises multiple skill sources."""
+
     def __init__(self, skills: Sequence[SkillMeta]):
         self._skills = list(skills)
-        self._by_id = {skill.identifier: skill for skill in skills}
+        self._by_id = {skill.identifier: skill for skill in self._skills}
 
     @property
     def skills(self) -> Sequence[SkillMeta]:
         return tuple(self._skills)
 
+    def get(self, identifier: str) -> 'SkillEntry | None':
+        skill = self._by_id.get(identifier)
+        if skill is None:
+            return None
+        return SkillEntry(
+            identifier=skill.identifier,
+            name=skill.name,
+            description=skill.description,
+            tags=tuple(skill.tags),
+            path=skill.skill_path,
+        )
+
     @classmethod
     def build(
         cls,
-        skill_roots: Mapping[str, Path],
-        output_dir: Path,
+        skill_roots: Mapping[str, Path] | str | Path,
+        output_dir: Path | None = None,
         *,
         prelude_max_chars: int = 1500,
     ) -> "Registry":
+        if isinstance(skill_roots, Mapping):
+            roots = {origin: Path(root) for origin, root in skill_roots.items()}
+            if output_dir is None:
+                raise TypeError("output_dir must be provided when building from multiple roots")
+            target_dir = Path(output_dir)
+        else:
+            root_path = Path(skill_roots)
+            roots = {"project": root_path}
+            target_dir = Path(output_dir) if output_dir is not None else root_path
+
         discovered: List[SkillMeta] = []
         seen_ids: Dict[str, Path] = {}
 
-        for origin, root in skill_roots.items():
+        for origin, root in roots.items():
             if root is None:
                 continue
-            root = Path(root)
-            if not root.exists():
+            root_path = Path(root)
+            if not root_path.exists():
                 continue
-            for skill_file in sorted(root.rglob("SKILL.md")):
+            for skill_file in sorted(root_path.rglob("SKILL.md")):
                 skill = SkillMeta.from_file(skill_file, origin)
                 if skill.identifier in seen_ids:
                     raise RegistryError(
@@ -324,13 +347,13 @@ class Registry:
         discovered.sort(key=lambda s: (s.name.lower(), s.identifier))
         registry = cls(discovered)
 
-        output_dir.mkdir(parents=True, exist_ok=True)
-        (output_dir / "skills.json").write_text(
+        target_dir.mkdir(parents=True, exist_ok=True)
+        (target_dir / "skills.json").write_text(
             json.dumps([skill.to_dict() for skill in discovered], indent=2),
             encoding="utf-8",
         )
         prelude_content = _synthesise_prelude(discovered, prelude_max_chars)
-        (output_dir / "prelude.md").write_text(prelude_content, encoding="utf-8")
+        (target_dir / "prelude.md").write_text(prelude_content, encoding="utf-8")
 
         return registry
 
@@ -375,96 +398,14 @@ def _synthesise_prelude(skills: Sequence[SkillMeta], max_chars: int) -> str:
 
     truncated = prelude[: max_chars - 1].rstrip()
     return truncated + "…\n"
-from typing import Dict, Iterable, Iterator
 
 
-@dataclass(slots=True)
-class SkillEntry:
-    """Lightweight representation of a registered skill."""
-
-    identifier: str
-    name: str
-    description: str
-    tags: tuple[str, ...]
-    path: Path
-
-    @property
-    def skill_root(self) -> Path:
-        """Return the root directory of the skill."""
-
-        return self.path
-
-
-class Registry:
-    """Collection of known skills backed by ``skills.json`` manifest."""
-
-    def __init__(self, root: Path, entries: Dict[str, SkillEntry]) -> None:
-        self._root = root
-        self._entries = entries
-
-    def __contains__(self, identifier: str) -> bool:  # pragma: no cover - trivial
-        return identifier in self._entries
-
-    def __iter__(self) -> Iterator[SkillEntry]:  # pragma: no cover - trivial
-        return iter(self._entries.values())
-
-    @property
-    def root(self) -> Path:
-        """Return the registry root path."""
-
-        return self._root
-
-    @property
-    def entries(self) -> Dict[str, SkillEntry]:  # pragma: no cover - trivial
-        """Return a copy of the registry entries mapping."""
-
-        return dict(self._entries)
-
-    def get(self, identifier: str) -> SkillEntry | None:
-        """Retrieve a skill entry by identifier."""
-
-        return self._entries.get(identifier)
-
-    @classmethod
-    def build(cls, root: str | Path) -> "Registry":
-        """Build a registry from the provided root directory."""
-
-        root_path = Path(root).resolve()
-        manifest_path = root_path / "skills.json"
-        if not manifest_path.exists():
-            return cls(root_path, {})
-
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        entries = {}
-        for item in data.get("skills", []):
-            identifier = item.get("id")
-            if not identifier:
-                continue
-            rel_path = item.get("path", identifier)
-            skill_path = (root_path / rel_path).resolve()
-            if not skill_path.exists():
-                skill_path = root_path / rel_path
-            entry = SkillEntry(
-                identifier=identifier,
-                name=item.get("name", identifier),
-                description=item.get("description", ""),
-                tags=tuple(item.get("tags", [])),
-                path=skill_path,
-            )
-            entries[identifier] = entry
-        return cls(root_path, entries)
-
-    def to_manifest(self) -> dict:
-        """Serialize the registry into manifest format."""
-
-        skills: Iterable[dict[str, object]] = (
-            {
-                "id": entry.identifier,
-                "name": entry.name,
-                "description": entry.description,
-                "tags": list(entry.tags),
-                "path": str(entry.path.relative_to(self._root)),
-            }
-            for entry in sorted(self._entries.values(), key=lambda e: e.identifier)
-        )
-        return {"skills": list(skills)}
+__all__ = [
+    "SkillMetadata",
+    "SkillRegistry",
+    "SkillRegistryBuilder",
+    "RegistryError",
+    "SkillMeta",
+    "SkillEntry",
+    "Registry",
+]

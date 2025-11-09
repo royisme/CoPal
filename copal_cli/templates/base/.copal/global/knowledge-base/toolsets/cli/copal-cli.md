@@ -4,56 +4,65 @@ origin: copal
 type: cli-guide
 owner: automation-guild
 enforcement: baseline
-updated: 2025-10-31
+updated: 2025-11-03
 ---
 
-# CoPal CLI 指南
+# CoPal CLI Guide
 
-## 核心命令
+## Core Commands
 
 ```bash
-copal init --target .             # 安装模板
-copal validate --target .copal    # 校验 front matter
-copal skill registry              # 列出技能注册表
-copal skill search <关键词>       # 检索技能
-copal skill scaffold <id>         # 拉取技能脚手架
-copal skill exec <id>             # 执行技能
+copal init --target .                    # Install templates
+copal validate --target .copal/global    # Validate front matter metadata
+copal analyze|spec|plan|implement|review|commit   # Run workflow stages
+copal mcp ls                             # List available MCP tools
+copal status                             # Summarise prompts and artifacts
+copal resume                             # Show the latest generated prompt
 ```
 
-## 技能脚手架
+## Skill Commands
 
-- `--target <目录>`：放置技能清单与入口提示。
-- `--prelude <路径>`：生成交接文件，记录参数、沙箱、依赖。
-- 建议将 `prelude.md` 与任务说明或 PR 一并提交，便于复用。
+```bash
+copal skill registry build --skills-root .copal/skills
+copal skill registry list --skills-root .copal/skills [--lang python]
+copal skill search --skills-root .copal/skills --query lint [--lang python]
+copal skill scaffold example/hello-world --skills-root .copal/skills
+copal skill exec --skills-root .copal/skills --skill example/hello-world [--sandbox]
+```
 
-## 沙箱策略
+- `--skills-root <dir>` – Directory containing skill folders (`skill.json`, `prelude.md`, entrypoints).
+- `--sandbox` – Required when executing a skill that declares `"requires_sandbox": true`.
 
-| 模式 | 说明 | 常见场景 |
-| --- | --- | --- |
-| `replay` | 只读回放，不写入磁盘 | 审核技能步骤、dry run |
-| `reuse` | 复用隔离环境（默认） | 重复执行、增量输出 |
-| `fresh` | 每次全新环境 | 高敏感或具副作用的脚本 |
+## Prelude Expectations
 
-执行 `copal skill exec` 时必须提供与技能清单相同或更严格的 `--sandbox`，否则命令会失败。
+`prelude.md` should include:
 
-## Prelude 约定
+1. Task background and skill identifier.
+2. Inputs, environment variables, and external resources.
+3. Expected outputs (files, logs, artifact paths).
+4. Execution notes from the last run and owner.
+5. Reproduction command, including `--sandbox` and any `--args` passed to the skill.
 
-`prelude.md` 需包含：
+Commit `prelude.md` alongside the skill so future users can safely reuse it.
 
-1. 任务背景与技能 ID；
-2. 输入参数、环境变量、外部资源链接；
-3. 预期产出（文件、日志、工件路径）；
-4. 上一次执行摘要与负责人；
-5. 复现命令（含 `--sandbox`、`--args`）。
+## Sandbox Recommendations
 
-## 审计与日志
+| Mode    | Description                        | Typical usage                    |
+| ------- | ---------------------------------- | -------------------------------- |
+| `replay`| Read-only, no writes               | Dry-runs, auditing skill steps   |
+| `reuse` | Reuse an isolated environment      | Iterative execution (default)    |
+| `fresh` | New environment each invocation    | Sensitive or side-effect-heavy tasks |
 
-- CLI 默认在 `.copal/logs/` 下写入执行日志，可用于 PR 引用；
-- 执行前确认 Git 工作区干净，避免误提交脚手架中的临时文件；
-- 对关键技能运行结果附上 `usage/` 目录或命令输出片段。
+Always execute a skill with a sandbox mode equal to or stricter than the one documented in its metadata.
 
-## 常见问题
+## Auditing and Logs
 
-- **注册表不可用**：检查 `COPAL_SKILL_REGISTRY` 是否指向有效 YAML，或回退到内置 `.copal/registry.yaml`。
-- **沙箱冲突**：如果技能要求 `fresh` 但本地环境无法创建容器，需要联系维护者调整策略。
-- **prelude 缺失字段**：执行 `copal skill scaffold ... --prelude prelude.md --force` 重新生成，并手动补齐项目特定配置。
+- CoPal can store execution logs under `.copal/logs/`; include relevant snippets in reviews or PRs.
+- Ensure the Git workspace is clean before scaffolding or executing skills to avoid committing temporary files.
+- Archive important outputs (under `usage/` or similar) when handing off to reviewers.
+
+## Troubleshooting
+
+- **Registry missing** – Run `copal skill registry build` to regenerate `registry.json`.
+- **Sandbox mismatch** – Re-run the skill with `--sandbox` if the metadata requires it.
+- **Prelude incomplete** – Regenerate using `copal skill scaffold ... --skills-root <dir> --force` and fill in project-specific details.

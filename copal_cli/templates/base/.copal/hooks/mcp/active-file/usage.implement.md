@@ -1,47 +1,34 @@
-# Active-File 和 File-Tree 使用指引 - 实施阶段
+# Active-File & File-Tree Usage Guide – Implement Stage
 
-## 工具说明
+## Tool Overview
 
-- **active-file**: 当前活动文件工具，帮助跟踪和定位正在编辑的文件
-- **file-tree**: 文件树导航工具，提供项目文件结构的完整视图
+- **active-file**: Tracks and opens the currently edited file.
+- **file-tree**: Provides a navigable view of the project structure.
 
-## 实施阶段使用建议
+## Recommendations for the Implement Stage
 
-在实施阶段，结合使用这两个工具来：
+1. **Locate target files**
+   - Use file-tree to browse the project and find files to modify.
+   - Use active-file to open the file currently under review.
+   - Identify related tests, configs, or documentation nearby.
 
-1. **定位目标文件**：
-   - 使用 file-tree 浏览项目结构，找到需要修改的文件
-   - 使用 active-file 快速访问当前正在编辑的文件
-   - 识别相关的测试文件和配置文件
+2. **Apply changes methodically**
+   - Follow the plan in `.copal/artifacts/plan.md` and edit files incrementally.
+   - Record what changed and why for each file.
+   - Ensure code style and conventions remain consistent.
 
-2. **执行代码修改**：
-   - 基于计划文档（`.copal/artifacts/plan.md`），逐步修改目标文件
-   - 记录每个文件的修改内容和原因
-   - 确保修改符合代码规范和项目约定
+3. **Write and update tests**
+   - Locate relevant test files via file-tree.
+   - Add or update tests to cover new behaviour.
+   - Capture test results in `.copal/artifacts/patch_notes.md`.
 
-3. **生成单元测试**：
-   - 为新增或修改的代码编写测试
-   - 使用 file-tree 定位测试文件的位置
-   - 确保测试覆盖关键功能和边界情况
+4. **Document modifications**
+   - List modified files, summaries, new tests, and documentation updates in the patch notes.
+   - Highlight any follow-up work or potential risks.
 
-4. **记录修改清单**：
-   - 在补丁说明（`.copal/artifacts/patch_notes.md`）中列出：
-     - 修改的文件列表
-     - 每个文件的修改摘要
-     - 新增的测试文件
-     - 需要更新的文档
+## Best Practices
 
-## 最佳实践
-
-- 小步提交：每次修改一个逻辑单元
-- 测试先行：修改代码前先编写或更新测试
-- 保持整洁：删除未使用的导入和注释
-- 遵循规范：保持代码风格与项目一致
-
-## 交付要求
-
-在补丁说明文档（`.copal/artifacts/patch_notes.md`）中包含：
-- 完整的文件修改清单
-- 每个修改的详细说明
-- 测试结果和覆盖率信息
-- 可能的风险和注意事项
+- Commit in small, reviewable units.
+- Write or update tests before finalising code.
+- Keep diffs clean by removing unused imports and comments.
+- Align with project-specific guidelines from `UserAgents.md`.

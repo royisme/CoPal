@@ -1,110 +1,105 @@
-# CoPal 使用指南
+# CoPal Usage Guide
 
-## 1. 安装方式（原型阶段）
+## 1. Installation
 
-目前提供 Python 包原型，可通过 `pip install -e` 在本地安装；也可直接复制源代码。
+The CLI currently ships as a source package. Install it locally with editable mode so updates are reflected immediately:
 
 ```bash
 pip install -e ./CoPal
-# 或者在子模块路径执行
+# or if CoPal lives as a submodule
 pip install -e tools/copal
 ```
 
-## 2. 初始化
+CoPal requires Python 3.9 or newer.
 
-在目标项目根目录执行：
+## 2. Initialisation
+
+Run the init command from the root of the target repository:
 
 ```bash
 copal init --target .
 ```
 
-选项说明：
-- `--target`：目标仓库路径，默认当前目录；
-- `--force`：如已存在相同文件/目录，强制覆盖。
+Options:
+- `--target` – Destination directory (default: current working directory)
+- `--force` – Overwrite existing files if they already exist
+- `--dry-run` – Show which files would be created without writing to disk
 
-执行后会生成：
+The command creates:
+- `AGENTS.md` – Root navigation guide
+- `UserAgents.md` – Placeholder for project-specific guidance
+- `.copal/` – Shared knowledge base, hooks, and MCP metadata
 
-- `AGENTS.md`：索引模板；
-- `UserAgents.md`：项目自定义占位文件；
-- `.copal/global/`：CoPal 提供的通用知识库。
+Treat `.copal/` as read-only unless you deliberately extend the templates. Re-run `copal init --force` to sync updates from CoPal.
 
-`.copal/` 目录通常视为只读，后续更新可通过重新运行 `copal init --force` 或 `git submodule update` 获得。
+## 3. Customising the Project
 
-## 3. 自定义步骤
+1. Edit `AGENTS.md` so the "Project Customisation" section points to real documents.
+2. Populate `UserAgents.md` with project-specific norms and link to any additional docs in the repo.
+3. (Optional) Mirror `.copal/global/knowledge-base/` to override selected templates with project content.
+4. Store reusable prompts or playbooks anywhere in the repo and link them from `UserAgents.md`.
 
-1. 编辑 `AGENTS.md`，在“项目自定义”列补充具体文档链接；
-2. 将项目特有的规范写入 `UserAgents.md`，并在仓库其它位置创建/维护相关文档；
-3. （可选）复制 `.copal/global/knowledge-base` 中的结构，创建同名文件覆盖默认说明；
-4. 如需 Prompt 模板，可在项目自定义目录自建并在 `UserAgents.md` 链接。
+## 4. Agent Loading Order
 
-## 4. agent 加载策略
+When an assistant starts working on the repo it should read, in order:
 
-代理启动时建议按以下顺序读取：
+1. Root `AGENTS.md`
+2. `.copal/global/knowledge-base` templates
+3. `UserAgents.md`
+4. Any docs linked from `UserAgents.md`
 
-1. 根目录 `AGENTS.md`（确定导航）；
-2. `.copal/global/knowledge-base`（通用模板）；
-3. `UserAgents.md`（列出项目自定义内容）；
-4. `UserAgents.md` 中引用的其它文档（specs/docs/tasks 等）。
+This ensures shared templates load first, followed by project-specific overrides.
 
-## 5. 更新模板
+## 5. Updating Templates
 
-- CoPal 仓库更新后，可使用 `git submodule update` 或重新运行 `init`（搭配 `--force`）同步；
-- 公共模板的改动必须保持通用性，避免写入具体技术细节；
-- 项目专属改动应在 `UserAgents.md` 及其引用的文档中维护。
+- Pull the latest CoPal repository (or update the submodule) and rerun `copal init --force` to refresh shared templates.
+- Keep shared templates generic; store project-specific details in your own docs.
+- Maintain a changelog for any custom knowledge base updates so teammates know what changed.
 
-## 6. 未来扩展
+## 6. CLI Reference
 
-- 发布 Python 包（如 `pip install copal-cli`），提供 `copal init` 命令；
-- 支持 `copal update`、`copal doctor` 等维护工具；
-- 引入 schema 校验与 front matter 检查脚本；
-- 适配更多 CLI（例如 Cursor CLI、Gemini CLI 等）。
-
-## 7. 技能生命周期（Skillization）
-
-CoPal 新增 `copal skill` 系列命令，用于管理可复用的自动化技能。完整流程如下：
-
-### 7.1 注册表与检索
+### Validation
 
 ```bash
-copal skill registry            # 查看已配置的技能注册表
-copal skill search lint         # 按名称、标签、所有者或描述检索
+copal validate --target .copal/global --pattern "**/*.md"
 ```
 
-- 默认注册表为 `.copal/registry.yaml`，会定期与远程源同步。
-- 可通过环境变量 `COPAL_SKILL_REGISTRY` 指定额外的企业内网源，或在 `UserAgents.md` 中声明自定义路径。
+Validates the YAML front matter metadata in knowledge base files.
 
-### 7.2 脚手架与 `prelude.md`
+### Workflow Commands
 
-```bash
-copal skill scaffold sample/hello-world --target skills/sample
-copal skill scaffold sample/hello-world --prelude prelude.md
-```
+Run the six-stage loop (`analyze`, `spec`, `plan`, `implement`, `review`, `commit`) to generate prompts and capture artifacts. Each command writes `.copal/runtime/<stage>.prompt.md` for the agent to follow and expects artifacts in `.copal/artifacts/`.
 
-- `--target`：将技能的 `skill.yaml`、入口提示、守卫策略复制到本地目录。
-- `--prelude <路径>`：生成 `prelude.md`，记录输入参数、依赖、沙箱要求与运行说明。建议将该文件与任务说明一起提交，供后续贡献者复用。
+### Status Utilities
 
-### 7.3 沙箱保障
+- `copal mcp ls` – Print available MCP tools declared in `.copal/mcp-available.json`
+- `copal status` – Summarise prompts, artifacts, and suggested next command
+- `copal resume` – Show the most recent prompt so the workflow can continue
 
-技能清单包含 `sandbox.mode` 字段，支持：
+### Skill Management
 
-- `replay`：只读模拟，不写入磁盘；
-- `reuse`：复用隔离环境（默认）；
-- `fresh`：每次执行均创建全新容器。
+The `copal skill` namespace manages reusable automation skills stored in `.copal/skills/` (or a custom directory):
 
-执行时必须提供不弱于清单要求的模式，例如：
+- `copal skill registry build --skills-root <dir>` – Scan skills and write `registry.json`
+- `copal skill registry list --skills-root <dir> [--lang python]` – List registered skills
+- `copal skill search --skills-root <dir> --query <text> [--lang python]` – Fuzzy search skill metadata
+- `copal skill scaffold <name> [--skills-root <dir>] [--lang python] [--description text]` – Create a lightweight scaffold with `skill.json`, `prelude.md`, and an entrypoint log file
+- `copal skill exec --skills-root <dir> --skill <name> [--sandbox]` – Stream the skill's entrypoint log to stdout (honours `requires_sandbox` in metadata)
 
-```bash
-copal skill exec sample/hello-world --prelude prelude.md --sandbox reuse
-```
+For richer scaffolds, use the Python API `copal_cli.skills.scaffold_skill` which renders Jinja templates and updates `skills.json` manifests.
 
-若传入的 `--sandbox` 低于清单声明，CLI 将拒绝执行并给出提示。建议在 `prelude.md` 中记录实际使用的模式，便于审计。
+## 7. Skill Lifecycle Tips
 
-### 7.4 执行与复用示例
+1. Scaffold new skills under a dedicated directory (for example `.copal/skills/internal/`).
+2. Record ownership, tags, and sandbox requirements in `skill.json`.
+3. Capture the intended usage in `prelude.md` so downstream agents know how to reuse the skill.
+4. Build the registry and commit both `registry.json` and the skill directory so other contributors can discover it.
+5. When executing, respect the declared sandbox requirement; rerun with `--sandbox` if the skill is marked as sensitive.
 
-1. `copal skill search markdown` → 定位 `sample/doc-lint`。
-2. `copal skill scaffold sample/doc-lint --target skills/doc-lint --prelude prelude.md` → 获取脚手架与交接文件。
-3. 编辑 `skills/doc-lint/skill.yaml`，设置 `args.path=docs/`。
-4. `copal skill exec sample/doc-lint --prelude prelude.md --args "--path docs/"` → 在守护的沙箱中运行。
-5. 将生成的 `usage/` 日志和 `prelude.md` 一并附在 PR 描述或回顾笔记中。
+## 8. Future Enhancements
 
-通过 `prelude.md` 和统一沙箱策略，团队可实现“写一次脚手架，多次复用执行”的技能化交付。
+Planned improvements include:
+- Publishing the package to PyPI
+- Additional maintenance commands (e.g., `copal update`, `copal doctor`)
+- Schema validation for knowledge base files
+- Integrations with additional AI CLIs as they become available

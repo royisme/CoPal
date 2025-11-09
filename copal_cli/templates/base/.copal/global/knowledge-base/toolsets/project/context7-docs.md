@@ -1,31 +1,36 @@
 ---
-id: context7-docs
+id: toolset-project-context7-docs
 origin: copal
-type: knowledge
+type: cli-guide
 owner: integration-team
-enforcement: recommended
-updated: 2025-10-31
+updated: 2025-11-03
 ---
 
-# Context7 文档检索指引
+# Context7 Documentation Retrieval Guide
 
-## 使用场景
+## When to Use
 
-- 快速查询第三方库、框架或工具的官方文档；
-- 指定版本 API 说明用于实现与验证。
+- Quickly pull official documentation for third-party libraries, frameworks, or tools.
+- Retrieve API references for a specific version to aid implementation and verification.
 
-## 操作步骤
+## Steps
 
-1. （可选）`mcp tools list` 确认已经安装 `context7` 相关工具。
-2. `context7 resolve-library-id "<library-name>"` 获取精确 ID。
-3. `context7 get-library-docs --id <id> --topic <topic> --tokens <limit>` 下载所需内容。
+1. (Optional) Run `mcp tools list` to ensure `context7` is installed.
+2. Resolve the library ID:
+   ```bash
+   context7 resolve-library-id "<library-name>"
+   ```
+3. Fetch documentation for a specific topic:
+   ```bash
+   context7 get-library-docs --id <id> --topic <topic> --tokens <limit>
+   ```
 
-## 产出要求
+## Output Requirements
 
-- 在方案/设计文档中标记引用来源与版本；
-- 若解析失败或缺少库，在 `retrospectives/` 说明并提 Issue。
+- Cite the source and version of the documentation in specifications or design documents.
+- If retrieval fails or the library is missing, record the issue in `retrospectives/` and raise it with maintainers.
 
-## 常见问题
+## Troubleshooting
 
-- **网络失败**：检查本地配置或代理，必要时刷新凭证；
-- **版本冲突**：尽量使用完整版本号（如 `/vercel/next.js/v14.3.0`）。
+- **Network failure** – Check local proxy or credentials and retry.
+- **Version mismatch** – Provide full version identifiers (e.g., `/vercel/next.js/v14.3.0`).

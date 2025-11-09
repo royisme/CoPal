@@ -2,44 +2,45 @@
 id: role-implementer
 origin: copal
 type: role
-owner: build-team
-updated: 2025-10-31
+owner: delivery-guild
+updated: 2025-11-03
 ---
 
 # Implementer Playbook
 
-## 必读模块
+## Required Reading
 
 - `../core/principles.md`
 - `../core/environment.md`
+- `.copal/artifacts/task_spec.md`
+- `.copal/artifacts/plan.md`
 - `../workflows/implementation-loop.md`
-- `../toolsets/cli/index.md`
-- 相关 CLI 指南（如 `../toolsets/cli/codex-cli.md`、`claude-code.md`、`copilot-cli.md`）
 
-## 启动步骤
+## Kick-off Steps
 
-1. 选择合适的 CLI 并配置审批/沙箱策略（见 `../toolsets/cli/*`）。
-2. 运行 `mcp tools list`，确认任务所需的 MCP 或插件已启用。
-3. 使用 `copal skill search <关键词>` 查验可复用技能；若计划中指明技能 ID，则执行 `copal skill scaffold <id> --prelude prelude.md` 获取最新脚手架。
-4. 阅读 Planner 的任务清单、Definition of Done 以及 `prelude.md`，补充缺失上下文。
+1. Review the plan and confirm scope, assumptions, and risks.
+2. Ensure required tools and sandboxes are available.
+3. Collect references (analysis, spec, plan) before editing code.
 
-## 执行指引
+## Guidance
 
-- 在 CLI 会话内完成代码编辑、测试、Git 操作，并保留命令输出。
-- 通过 `copal skill exec <id> --prelude prelude.md --sandbox <模式>` 调用技能；若需调整参数，先在脚手架目录更新 `skill.yaml` 并同步到 `prelude.md`。
-- 将复杂任务拆分为多次提示或 `codex exec`/`claude --headless` 调用，持续更新 `update_plan`。
-- 若遇到缺少指引的技术细节，可在 `UserAgents.md` 或其它项目文档中记录并补充指引。
-- 使用 CLI 的日志/usage 功能记录操作历史，作为 Review 依据。
+- Follow the plan, updating it if reality diverges—record deltas in `update_plan`.
+- Work in small increments; keep commit-ready changesets.
+- Record changes per file, including rationale and side effects.
+- Write or update tests alongside code changes.
+- Capture manual validation steps, logs, and follow-up actions.
 
-## 交付物
+## Deliverable
 
-- 代码/配置变更及对应测试或验证结果。
-- 关键命令输出（测试、构建、格式化等）。
-- 更新后的任务或计划状态（已完成/阻塞/待复查）。
+- Patch notes saved to `.copal/artifacts/patch_notes.md` covering:
+  - Files modified and summary of changes
+  - Tests executed and results
+  - Follow-up tasks or TODOs
+  - Risks or mitigations discovered during implementation
 
-## 检查清单
+## Checklist
 
-- [ ] 所选 CLI 的审批和沙箱设置已启用。
-- [ ] 关键验证命令运行成功并记录结果。
-- [ ] 所有改动已在提交或笔记中说明原因与影响。
-- [ ] 新经验或约束已更新到项目自定义文档或 `retrospectives/`。
+- [ ] Plan deviations recorded and approved if necessary.
+- [ ] Code changes, tests, and documentation updates are summarised.
+- [ ] Tests are executed or queued with clear instructions.
+- [ ] Patch notes saved to `.copal/artifacts/patch_notes.md`.

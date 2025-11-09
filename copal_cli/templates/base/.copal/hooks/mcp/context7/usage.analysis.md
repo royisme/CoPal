@@ -1,46 +1,40 @@
-# Context7 使用指引 - 分析阶段
+# Context7 Usage Guide – Analysis Stage
 
-## 工具说明
+## Tool Overview
 
-Context7 是一个上下文文档查询工具，可以帮助您：
-- 查询官方文档和 API 参考
-- 获取最佳实践和示例代码
-- 了解库/框架的版本信息和兼容性
+Context7 is a documentation discovery tool that helps you:
+- Query official documentation and API references
+- Gather best practices and example code
+- Check library/framework versions and compatibility
 
-## 分析阶段使用建议
+## Recommendations for the Analysis Stage
 
-在分析阶段，使用 Context7 来：
+1. **Research technical stacks**
+   - Confirm the latest versions used by the project
+   - Capture key concepts and terminology
+   - Identify constraints or limitations
 
-1. **查询技术栈文档**：
-   - 确认项目使用的库/框架的最新版本
-   - 了解相关技术的核心概念和术语
-   - 收集技术约束和限制信息
+2. **Collect background information**
+   - Review documentation to expand context
+   - Understand common use cases and patterns
+   - Spot potential technical risks
 
-2. **收集背景信息**：
-   - 查阅相关技术的文档，补充背景知识
-   - 了解常见的使用场景和模式
-   - 识别潜在的技术风险点
+3. **Record key findings**
+   - Add important notes to the analysis report
+   - Cite documentation sources and version numbers
+   - Flag technical details that require further validation
 
-3. **记录关键发现**：
-   - 将查询到的重要信息记录到分析报告中
-   - 标注文档来源和版本号
-   - 列出需要进一步验证的技术细节
+## Example Queries
 
-## 示例查询
-
-```
-# 查询 React 的最新特性
-context7 query "React 19 new features"
-
-# 查询 Python 类型提示的最佳实践
-context7 query "Python type hints best practices"
-
-# 查询特定 API 的使用方法
-context7 query "FastAPI dependency injection"
+```bash
+context7 resolve-library-id "react"
+context7 get-library-docs --id <id> --topic "what's new"
+context7 get-library-docs --id <id> --topic "typing best practices"
+context7 get-library-docs --id <id> --topic "specific API usage"
 ```
 
-## 注意事项
+## Tips
 
-- 优先查询官方文档，确保信息准确性
-- 记录查询时间和文档版本号
-- 如果文档不明确，将其列入待澄清事项
+- Prioritise official documentation to ensure accuracy.
+- Record the retrieval time and version for each citation.
+- If documentation is unclear, list it as an open question for the next stage.

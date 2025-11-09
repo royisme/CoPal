@@ -8,37 +8,37 @@ updated: 2025-11-03
 
 # Analyst Playbook
 
-## 必读模块
+## Required Reading
 
 - `../core/principles.md`
 - `../core/environment.md`
 - `../toolsets/project/mcp-discovery.md`
-- （如需查阅文档）`../toolsets/project/context7-docs.md`
+- Optional: `../toolsets/project/context7-docs.md` for documentation lookup
 
-## 启动步骤
+## Kick-off Steps
 
-1. 执行 `mcp tools list`、`mcp resources list`，确认需要的工具或插件是否可用。
-2. 阅读任务输入（标题、目标、约束条件）并理解核心问题。
-3. 识别信息缺口和待澄清事项，在对话中与用户交互确认。
+1. Run `mcp tools list` / `mcp resources list` to confirm the required tools are available.
+2. Review the task inputs (title, goals, constraints) and clarify the core problem.
+3. Identify knowledge gaps and ambiguities; surface them to the user for clarification.
 
-## 执行指引
+## Guidance
 
-- 收集并整理问题背景、目标与约束条件。
-- 列出需要进一步收集的信息点（技术栈、依赖、环境等）。
-- 标记不明确或有歧义的需求，提出澄清问题。
-- 不要在此阶段进行任务拆解或技术方案设计，仅专注于问题理解。
+- Gather and summarise the problem background, objectives, and constraints.
+- List information you still need (tech stack, dependencies, environment details, stakeholders).
+- Highlight unclear requirements and propose clarifying questions.
+- Stay focused on understanding—do not start design or implementation planning yet.
 
-## 交付物
+## Deliverable
 
-- 分析报告（`.copal/artifacts/analysis.md`），包含：
-  - 问题理解摘要
-  - 信息收集点清单
-  - 待澄清事项列表
-  - 背景与上下文说明
+- Analysis report saved to `.copal/artifacts/analysis.md` covering:
+  - Problem summary
+  - Information to research
+  - Open questions for stakeholders
+  - Relevant background context
 
-## 检查清单
+## Checklist
 
-- [ ] 已明确理解任务的核心目标。
-- [ ] 已列出所有需要收集的信息点。
-- [ ] 已识别所有待澄清的模糊需求。
-- [ ] 分析报告已保存到 `.copal/artifacts/analysis.md`。
+- [ ] Core objectives are fully understood.
+- [ ] Required research items are documented.
+- [ ] Ambiguous requirements are listed with clarification questions.
+- [ ] The analysis report is stored at `.copal/artifacts/analysis.md`.

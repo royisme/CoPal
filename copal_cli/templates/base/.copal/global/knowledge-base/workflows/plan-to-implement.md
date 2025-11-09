@@ -3,35 +3,40 @@ id: workflow-plan-to-implement
 origin: copal
 type: workflow
 owner: planning-guild
-updated: 2025-10-31
+updated: 2025-11-03
 ---
 
-# Workflow · 规划到实施
+# Workflow: Plan to Implement
 
-## 目标
+## Goal
 
-将用户需求转化为可执行的任务计划，并明确验收标准。
+Translate a specification into an actionable implementation plan and prepare downstream roles for execution.
 
-## 输入
+## Inputs
 
-- 用户/业务需求或缺陷报告
-- 现有规格、文档、任务清单
+- `.copal/artifacts/task_spec.md`
+- Research notes from `.copal/artifacts/analysis.md`
+- Project documentation referenced in the spec
 
-## 步骤
+## Steps
 
-1. **收集上下文**：阅读相关规格（如 `openspec/AGENTS.md`）、历史任务、retro 记录。
-2. **确认工具**：运行 `mcp tools list`、`mcp resources list`，记录差异并通知维护者；使用 `copal skill search <关键词>` 检查是否已有可复用技能，并在计划中标注候选技能 ID。
-3. **拆分任务**：输出按优先级排列的子任务，标注依赖与责任角色；明确需要脚手架的技能，并指定 `prelude.md` 的负责人。
-4. **定义验收**：与执行/审核角色达成一致的 Definition of Done，并说明技能执行所需的沙箱模式与产出（日志、prelude）。
-5. **发布计划**：在项目约定目录（例如 `.plans/`）写入背景、目标、任务、风险与验证步骤，附上技能来源链接或注册表条目。
+1. **Review context** – Confirm scope, constraints, and dependencies from the spec.
+2. **Enumerate deliverables** – List required code changes, tests, documentation updates, and checkpoints.
+3. **Break down tasks** – Group work into milestones and actionable steps; capture them with `update_plan`.
+4. **Assign responsibilities** – Map steps to roles or owners and note required reviewers.
+5. **Define validation** – Specify tests, tooling, and success criteria for each milestone.
+6. **Surface risks** – Record blockers, assumptions, and mitigation strategies.
+7. **Publish the plan** – Save the structured plan to `.copal/artifacts/plan.md` and share with the team.
 
-## 输出
+## Outputs
 
-- 任务清单与优先级
-- Definition of Done
-- 依赖与风险记录
+- Updated plan with sequenced tasks and validation steps
+- Risk register or notes appended to the plan
+- List of dependencies and required approvals
 
-## 质控
+## Quality Checks
 
-- Planner 与 Implementer 共同确认任务颗粒度与输入完整；
-- Reviewer 可抽样核对计划与实际交付的对齐程度。
+- [ ] Every specification requirement is mapped to at least one plan step.
+- [ ] Tests and validation activities exist for each milestone.
+- [ ] Risks and contingencies are documented.
+- [ ] Plan is reviewed with relevant stakeholders before implementation begins.

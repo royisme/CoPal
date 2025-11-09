@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-"""简单的终端命令守卫示例。
+"""Guardrail script that enforces the use of `uv` for Python and pip commands.
 
-该脚本会在命令中检测裸 `python` 或 `pip`，并建议使用 `uv run` / `uv pip` 方式。
-可根据项目需要扩展匹配规则或输出格式。
-"""
+The script flags commands that invoke bare `python` or `pip` and suggests
+`uv run` or `uv pip` alternatives. Extend the matching logic or output format
+as needed for your project."""
 
 from __future__ import annotations
 
@@ -26,17 +25,17 @@ def append_log(payload: dict) -> None:
 
 def show_snapshot(limit: int) -> int:
     if not LOG_FILE.exists():
-        print("[guardrail] 当前无历史记录。")
+        print("[guardrail] No history yet.")
         return 0
 
     with LOG_FILE.open("r", encoding="utf-8") as fh:
         lines = fh.readlines()[-limit:]
 
     if not lines:
-        print("[guardrail] 日志为空。")
+        print("[guardrail] Log is empty.")
         return 0
 
-    print("最近违规记录：")
+    print("Recent violations:")
     for line in lines:
         try:
             record = json.loads(line)
@@ -46,14 +45,14 @@ def show_snapshot(limit: int) -> int:
         timestamp = record.get("timestamp")
         command = record.get("command")
         suggestion = record.get("suggestion")
-        print(f"- {timestamp}: {command} -> 建议 {suggestion}")
+        print(f"- {timestamp}: {command} -> Suggested {suggestion}")
     return 0
 
 
 def check_command(command: str) -> int:
     normalized = command.strip()
     if not normalized:
-        print("[guardrail] 未提供有效命令。", file=sys.stderr)
+        print("[guardrail] No command provided.", file=sys.stderr)
         return 2
 
     lower = normalized.lower()
@@ -61,27 +60,31 @@ def check_command(command: str) -> int:
 
     violations = []
     if "python" in lower and not wrapped_with_uv:
-        violations.append({
-            "reason": "detected-python",
-            "suggestion": f"uv run {normalized}",
-        })
+        violations.append(
+            {
+                "reason": "detected-python",
+                "suggestion": f"uv run {normalized}",
+            }
+        )
 
     if lower.startswith("pip "):
         remainder = normalized.split(" ", 1)[1] if " " in normalized else ""
-        violations.append({
-            "reason": "detected-pip",
-            "suggestion": f"uv pip {remainder}".strip(),
-        })
+        violations.append(
+            {
+                "reason": "detected-pip",
+                "suggestion": f"uv pip {remainder}".strip(),
+            }
+        )
 
     if not violations:
-        print("[guardrail] ✅ 命令通过校验。")
+        print("[guardrail] ✅ Command accepted.")
         return 0
 
     for item in violations:
         suggestion = item["suggestion"]
         reason = item["reason"]
-        print(f"[违规] {reason}: {normalized}")
-        print(f"[建议] 使用: {suggestion}")
+        print(f"[Violation] {reason}: {normalized}")
+        print(f"[Suggestion] Use: {suggestion}")
 
         append_log(
             {
@@ -97,9 +100,9 @@ def check_command(command: str) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="UV guardrail example")
-    parser.add_argument("--command", help="待校验的命令字符串", default="")
-    parser.add_argument("--snapshot", action="store_true", help="显示最近的违规记录")
-    parser.add_argument("--limit", type=int, default=20, help="snapshot 显示的最大条目数")
+    parser.add_argument("--command", help="Command string to validate", default="")
+    parser.add_argument("--snapshot", action="store_true", help="Show recent violations")
+    parser.add_argument("--limit", type=int, default=20, help="Maximum entries to display for snapshots")
 
     args = parser.parse_args(argv)
 

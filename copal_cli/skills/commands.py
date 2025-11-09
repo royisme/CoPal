@@ -1,4 +1,3 @@
-"""Handlers for skill related CLI commands."""
 from __future__ import annotations
 
 import argparse
@@ -6,7 +5,7 @@ import logging
 import sys
 from pathlib import Path
 
-from .executor import SkillExecutor
+from .executor import SkillLogStreamer
 from .registry import SkillRegistry, SkillRegistryBuilder
 from .scaffold import SkillScaffolder
 from .selector import SkillSelector
@@ -17,8 +16,7 @@ _DEFAULT_ROOT = Path(".copal/skills")
 
 
 def _resolve_root(path: str | None) -> Path:
-    root = Path(path or _DEFAULT_ROOT)
-    return root
+    return Path(path or _DEFAULT_ROOT)
 
 
 def _load_registry(root: Path) -> SkillRegistry:
@@ -113,9 +111,9 @@ def exec_command(args: argparse.Namespace) -> int:
             skill.language,
         )
         return 1
-    executor = SkillExecutor(stream=sys.stdout)
+    streamer = SkillLogStreamer(stream=sys.stdout)
     try:
-        executor.execute(skill, sandbox=sandbox)
+        streamer.execute(skill, sandbox=sandbox)
     except PermissionError as exc:
         logger.error(str(exc))
         return 1

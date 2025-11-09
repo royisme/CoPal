@@ -1,4 +1,3 @@
-"""Generate skill scaffolds from reusable templates."""
 from __future__ import annotations
 
 import json
@@ -8,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from string import Template
 from typing import Iterable, Mapping
+
 DEFAULT_ENTRYPOINT = "run.txt"
 DEFAULT_DESCRIPTION = "Describe the purpose of the skill."
 
@@ -15,6 +15,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = PACKAGE_DIR.parent / "templates" / "skills"
 
 _SLUG_PATTERN = re.compile(r"[^a-z0-9]+")
+
 
 class SkillScaffolder:
     """Create a new skill directory with boilerplate files."""
@@ -30,6 +31,7 @@ class SkillScaffolder:
         description: str | None = None,
     ) -> Path:
         """Create a new skill skeleton and return its directory path."""
+
         self.skills_root.mkdir(parents=True, exist_ok=True)
         skill_dir = self.skills_root / name
         if skill_dir.exists():
@@ -55,8 +57,6 @@ class SkillScaffolder:
             encoding="utf-8",
         )
         return skill_dir
-
-
 
 
 @dataclass(slots=True)
@@ -93,7 +93,7 @@ def _normalise_tags(tags: Iterable[str], fallback: str) -> list[str]:
 
 
 def _render_template(template_path: Path, context: Mapping[str, str]) -> str:
-    """Render a string.Template with the provided context."""
+    """Render a :class:`string.Template` with the provided context."""
 
     raw = template_path.read_text(encoding="utf-8")
     return Template(raw).substitute(context)
