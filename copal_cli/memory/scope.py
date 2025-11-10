@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -32,7 +31,7 @@ class ScopeManager:
     def set_scope(self, scope: str) -> None:
         self._current_scope = scope
 
-    def resolve(self, override: Optional[str] = None) -> str:
+    def resolve(self, override: str | None = None) -> str:
         if override:
             return override
         return self.current_scope

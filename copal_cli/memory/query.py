@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable, List
+from typing import Any, Iterable
 
 from .models import Memory, MemoryType
 
@@ -20,7 +20,7 @@ class MemoryQueryEngine:
         *,
         scope: str | None = None,
         types: Iterable[MemoryType] | None = None,
-    ) -> List[Memory]:
+    ) -> list[Memory]:
         pattern = re.compile(re.escape(query), re.IGNORECASE)
         type_set = set(types) if types else None
         results: list[Memory] = []
@@ -44,7 +44,7 @@ class MemoryQueryEngine:
         *,
         scope: str | None = None,
         types: Iterable[MemoryType] | None = None,
-    ) -> List[Memory]:
+    ) -> list[Memory]:
         type_set = set(types) if types else None
         results: list[Memory] = []
         for _, data in self._graph.nodes(data=True):

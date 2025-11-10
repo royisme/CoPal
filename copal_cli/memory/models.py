@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -18,13 +18,13 @@ def _now() -> datetime:
     return datetime.utcnow()
 
 
-def _serialize_datetime(value: Optional[datetime]) -> Optional[str]:
+def _serialize_datetime(value: datetime | None) -> str | None:
     if value is None:
         return None
     return value.strftime(ISO_FORMAT)
 
 
-def _deserialize_datetime(value: Optional[str]) -> Optional[datetime]:
+def _deserialize_datetime(value: str | None) -> datetime | None:
     if value is None:
         return None
     try:
@@ -63,14 +63,14 @@ class Memory:
     type: MemoryType
     content: str
     scope: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=_now)
     updated_at: datetime = field(default_factory=_now)
-    valid_from: Optional[datetime] = None
-    valid_until: Optional[datetime] = None
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
     importance: float = 0.5
     access_count: int = 0
-    last_accessed: Optional[datetime] = None
+    last_accessed: datetime | None = None
 
     def touch(self) -> None:
         """Update timestamps when the memory is accessed or mutated."""
@@ -79,7 +79,7 @@ class Memory:
         self.access_count += 1
         self.last_accessed = self.updated_at
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialise the memory for persistence."""
 
         return {
@@ -98,7 +98,7 @@ class Memory:
         }
 
     @staticmethod
-    def from_dict(payload: Dict[str, Any]) -> "Memory":
+    def from_dict(payload: dict[str, Any]) -> "Memory":
         """Rehydrate a :class:`Memory` from stored data."""
 
         return Memory(
@@ -128,11 +128,11 @@ class Relationship:
     scope: str
     weight: float = 1.0
     confidence: float = 1.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=_now)
-    created_by: Optional[str] = None
+    created_by: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "source_id": self.source_id,
@@ -147,7 +147,7 @@ class Relationship:
         }
 
     @staticmethod
-    def from_dict(payload: Dict[str, Any]) -> "Relationship":
+    def from_dict(payload: dict[str, Any]) -> "Relationship":
         return Relationship(
             id=payload["id"],
             source_id=payload["source_id"],
