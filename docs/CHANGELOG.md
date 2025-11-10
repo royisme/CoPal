@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-11-01 · Local Memory Layer
+
+### Added
+- Introduced a pluggable memory subsystem with a NetworkX + SQLite backend and CLI commands for CRUD operations.
+- Added automatic memory capture for each workflow stage (analysis through commit) when auto-capture is enabled.
+- Documented memory configuration in `docs/USAGE.md`.
+
+### Impact for Downstream Projects
+- New dependency on `networkx`; update project environments accordingly.
+- Re-run `copal init` if you want the memory hooks and configuration defaults in existing repositories.
+
 ## 2025-10-31 · Skillization Lifecycle Preview
 
 ### Added

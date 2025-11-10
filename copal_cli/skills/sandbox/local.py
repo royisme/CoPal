@@ -11,7 +11,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable
+from collections.abc import Iterable
 
 try:  # pragma: no cover - optional on non-Unix systems
     import resource

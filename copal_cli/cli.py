@@ -6,6 +6,17 @@ import sys
 from pathlib import Path
 
 from .init import init_command
+from .memory.cli_commands import (
+    memory_add_command,
+    memory_delete_command,
+    memory_list_command,
+    memory_search_command,
+    memory_show_command,
+    memory_summary_command,
+    memory_supersede_command,
+    memory_update_command,
+)
+from .memory.models import MemoryType
 from .skills.commands import (
     exec_command as skill_exec_command,
     registry_build_command as skill_registry_build_command,
@@ -208,6 +219,168 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exec_parser.set_defaults(handler=skill_exec_command)
 
+    # Memory commands
+    memory_parser = subparsers.add_parser(
+        "memory",
+        help="Manage persistent workflow memories",
+    )
+    memory_parser.add_argument(
+        "--target",
+        default=".",
+        help="Target repository path (default: current directory)",
+    )
+    memory_subparsers = memory_parser.add_subparsers(
+        dest="memory_command",
+        required=True,
+    )
+
+    memory_add_parser = memory_subparsers.add_parser(
+        "add",
+        help="Add a new memory entry",
+    )
+    memory_add_parser.add_argument(
+        "--type",
+        required=True,
+        choices=[t.value for t in MemoryType],
+        help="Memory category",
+    )
+    memory_add_parser.add_argument(
+        "--content",
+        required=True,
+        help="Memory content",
+    )
+    memory_add_parser.add_argument(
+        "--id",
+        help="Explicit memory identifier",
+    )
+    memory_add_parser.add_argument("--scope", help="Override scope identifier")
+    memory_add_parser.add_argument(
+        "--importance",
+        type=float,
+        default=0.5,
+        help="Importance score between 0 and 1",
+    )
+    memory_add_parser.add_argument(
+        "--metadata",
+        action="append",
+        help="Key=value metadata entries",
+    )
+    memory_add_parser.set_defaults(handler=memory_add_command)
+
+    memory_search_parser = memory_subparsers.add_parser(
+        "search",
+        help="Search stored memories",
+    )
+    memory_search_parser.add_argument(
+        "--query",
+        required=True,
+        help="Search query string",
+    )
+    memory_search_parser.add_argument("--scope", help="Scope filter")
+    memory_search_parser.add_argument(
+        "--type",
+        dest="types",
+        action="append",
+        choices=[t.value for t in MemoryType],
+        help="Filter by memory type",
+    )
+    memory_search_parser.set_defaults(handler=memory_search_command)
+
+    memory_show_parser = memory_subparsers.add_parser(
+        "show",
+        help="Show details of a memory",
+    )
+    memory_show_parser.add_argument("memory_id", help="Memory identifier")
+    memory_show_parser.add_argument("--scope", help="Scope filter")
+    memory_show_parser.set_defaults(handler=memory_show_command)
+
+    memory_update_parser = memory_subparsers.add_parser(
+        "update",
+        help="Update an existing memory",
+    )
+    memory_update_parser.add_argument("memory_id", help="Memory identifier")
+    memory_update_parser.add_argument("--scope", help="Scope filter")
+    memory_update_parser.add_argument("--content", help="Updated content")
+    memory_update_parser.add_argument(
+        "--importance",
+        type=float,
+        help="Updated importance score",
+    )
+    memory_update_parser.add_argument(
+        "--metadata",
+        action="append",
+        help="Key=value metadata entries",
+    )
+    memory_update_parser.add_argument(
+        "--type",
+        choices=[t.value for t in MemoryType],
+        help="Updated memory type",
+    )
+    memory_update_parser.set_defaults(handler=memory_update_command)
+
+    memory_delete_parser = memory_subparsers.add_parser(
+        "delete",
+        help="Delete a memory entry",
+    )
+    memory_delete_parser.add_argument("memory_id", help="Memory identifier")
+    memory_delete_parser.add_argument("--scope", help="Scope filter")
+    memory_delete_parser.set_defaults(handler=memory_delete_command)
+
+    memory_supersede_parser = memory_subparsers.add_parser(
+        "supersede",
+        help="Create a memory that supersedes another",
+    )
+    memory_supersede_parser.add_argument("old_memory_id", help="Existing memory ID")
+    memory_supersede_parser.add_argument(
+        "--type",
+        required=True,
+        choices=[t.value for t in MemoryType],
+        help="Type of the new memory",
+    )
+    memory_supersede_parser.add_argument(
+        "--content",
+        required=True,
+        help="Content of the new memory",
+    )
+    memory_supersede_parser.add_argument("--scope", help="Scope override")
+    memory_supersede_parser.add_argument(
+        "--importance",
+        type=float,
+        default=0.5,
+        help="Importance score of the new memory",
+    )
+    memory_supersede_parser.add_argument(
+        "--reason",
+        help="Reason the previous memory is superseded",
+    )
+    memory_supersede_parser.add_argument(
+        "--metadata",
+        action="append",
+        help="Key=value metadata entries",
+    )
+    memory_supersede_parser.set_defaults(handler=memory_supersede_command)
+
+    memory_summary_parser = memory_subparsers.add_parser(
+        "summary",
+        help="Summarise memories for the scope",
+    )
+    memory_summary_parser.add_argument("--scope", help="Scope filter")
+    memory_summary_parser.set_defaults(handler=memory_summary_command)
+
+    memory_list_parser = memory_subparsers.add_parser(
+        "list",
+        help="List memories in the active scope",
+    )
+    memory_list_parser.add_argument("--scope", help="Scope filter")
+    memory_list_parser.add_argument(
+        "--type",
+        dest="types",
+        action="append",
+        choices=[t.value for t in MemoryType],
+        help="Filter by memory type",
+    )
+    memory_list_parser.set_defaults(handler=memory_list_command)
+
     # Stage commands
     analyze_parser = subparsers.add_parser(
         "analyze",
@@ -379,6 +552,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "validate":
         return args.handler(args)
     if args.command == "skill":
+        return args.handler(args)
+    if args.command == "memory":
         return args.handler(args)
     if args.command == "analyze":
         return analyze_command(

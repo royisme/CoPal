@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from ..memory.integration import maybe_record_stage_memory
+from ..memory.models import MemoryType
 from ..system.fs import ensure_runtime_dirs
 from ..system.mcp import read_mcp_available
 from ..system.prompt_builder import render_stage_prompt
@@ -53,6 +55,17 @@ def plan_command(target: str) -> int:
         print(f"  2. After completing plan, save artifacts to: {artifacts_dir / 'plan.md'}\n")
         print("Next step:")
         print("  copal implement\n")
+
+        maybe_record_stage_memory(
+            target_root=target_root,
+            memory_type=MemoryType.PLAN,
+            content=f"Planning stage prompt generated at {prompt_path}",
+            metadata={
+                "stage": "plan",
+                "prompt_path": str(prompt_path),
+            },
+            importance=0.5,
+        )
 
         return 0
 

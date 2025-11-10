@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from string import Template
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 DEFAULT_ENTRYPOINT = "run.txt"
 DEFAULT_DESCRIPTION = "Describe the purpose of the skill."

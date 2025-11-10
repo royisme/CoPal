@@ -88,6 +88,38 @@ The `copal skill` namespace manages reusable automation skills stored in `.copal
 
 For richer scaffolds, use the Python API `copal_cli.skills.scaffold_skill` which renders Jinja templates and updates `skills.json` manifests.
 
+### Memory Management
+
+CoPal includes an optional memory layer that persists decisions, notes, and experiences across workflow runs. The CLI exposes the following commands:
+
+- `copal memory add --type <decision|preference|experience|plan|note> --content "..." [--metadata key=value]` – create a memory entry.
+- `copal memory search --query <text> [--type decision]` – perform a keyword search within the active scope.
+- `copal memory show <id>` – inspect the full record, including relationships.
+- `copal memory update <id> --content "..." [--metadata key=value]` – update stored content or metadata.
+- `copal memory delete <id>` – remove a memory and its relationships.
+- `copal memory supersede <id> --type decision --content "..."` – add a follow-up memory linked with a `SUPERSEDES` relationship.
+- `copal memory list` / `copal memory summary` – list or summarise memories for the current project scope.
+
+Memories are scoped per repository by default. Configuration lives in `.copal/config.json` under the `memory` key:
+
+```json
+{
+  "memory": {
+    "backend": "networkx",
+    "database": ".copal/memory.db",
+    "auto_capture": true,
+    "scope": {"default": "my-project"}
+  }
+}
+```
+
+- `backend` – currently only `networkx` is supported and stores data locally with SQLite persistence.
+- `database` – relative or absolute path for the SQLite file.
+- `auto_capture` – when `true`, each workflow stage automatically logs a lightweight note about prompt generation.
+- `scope.default` – overrides the default scope identifier when working across multiple projects.
+
+The auto-capture hook records a short note every time `copal analyze/spec/plan/implement/review/commit` runs. Agents can expand on these entries (for example, replace the placeholder content with artefact summaries) using `copal memory update`.
+
 ## 7. Skill Lifecycle Tips
 
 1. Scaffold new skills under a dedicated directory (for example `.copal/skills/internal/`).

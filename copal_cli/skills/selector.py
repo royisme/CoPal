@@ -4,8 +4,8 @@ import difflib
 import math
 import re
 from collections import Counter
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence, Tuple
 
 from .registry import SkillMeta, SkillMetadata
 
@@ -38,7 +38,7 @@ class SkillSelector:
         return matches
 
 
-def _tokenise(text: str) -> List[str]:
+def _tokenise(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", text.lower())
 
 
@@ -97,7 +97,7 @@ class Selector:
         norm = self._vector_norm(vector)
         return vector, norm
 
-    def search(self, query: str, k: int = 5, threshold: float = 0.0) -> List[Tuple[SkillMeta, float]]:
+    def search(self, query: str, k: int = 5, threshold: float = 0.0) -> list[tuple[SkillMeta, float]]:
         if not query or not query.strip():
             return []
 
@@ -106,7 +106,7 @@ class Selector:
             return []
         query_vector, query_norm = self._query_vector(query_tokens)
 
-        results: List[Tuple[SkillMeta, float]] = []
+        results: list[tuple[SkillMeta, float]] = []
         for skill, doc_vector, doc_norm, full_text, tokens in zip(
             self._skills, self._doc_vectors, self._doc_norms, self._full_texts, self._tokens
         ):

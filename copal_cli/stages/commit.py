@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
+from ..memory.integration import maybe_record_stage_memory
+from ..memory.models import MemoryType
 from ..system.fs import ensure_runtime_dirs, write_text
 
 logger = logging.getLogger(__name__)
@@ -62,5 +64,23 @@ def commit_command(target: str, task_id: str | None = None) -> int:
         for artifact in sorted(artifact_files):
             print(f"    - {artifact}")
     print("\nWorkflow complete! Run 'copal analyze' to start a new task.\n")
+
+    maybe_record_stage_memory(
+        target_root=target_root,
+        memory_type=MemoryType.NOTE,
+        content=(
+            "Commit stage completed with task {task} and {count} artifacts.".format(
+                task=commit_data["task_id"],
+                count=len(artifact_files),
+            )
+        ),
+        metadata={
+            "stage": "commit",
+            "task_id": commit_data["task_id"],
+            "artifacts": artifact_files,
+            "commit_file": str(commit_file.relative_to(target_root)),
+        },
+        importance=0.5,
+    )
 
     return 0

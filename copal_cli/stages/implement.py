@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from ..memory.integration import maybe_record_stage_memory
+from ..memory.models import MemoryType
 from ..system.fs import ensure_runtime_dirs
 from ..system.mcp import read_mcp_available
 from ..system.prompt_builder import render_stage_prompt
@@ -53,6 +55,17 @@ def implement_command(target: str) -> int:
         print(f"  2. After completing implementation, save artifacts to: {artifacts_dir / 'patch_notes.md'}\n")
         print("Next step:")
         print("  copal review\n")
+
+        maybe_record_stage_memory(
+            target_root=target_root,
+            memory_type=MemoryType.EXPERIENCE,
+            content=f"Implementation stage prompt generated at {prompt_path}",
+            metadata={
+                "stage": "implement",
+                "prompt_path": str(prompt_path),
+            },
+            importance=0.6,
+        )
 
         return 0
 
