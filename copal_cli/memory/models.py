@@ -98,7 +98,7 @@ class Memory:
         }
 
     @staticmethod
-    def from_dict(payload: dict[str, Any]) -> "Memory":
+    def from_dict(payload: dict[str, Any]) -> Memory:
         """Rehydrate a :class:`Memory` from stored data."""
 
         return Memory(
@@ -147,7 +147,7 @@ class Relationship:
         }
 
     @staticmethod
-    def from_dict(payload: dict[str, Any]) -> "Relationship":
+    def from_dict(payload: dict[str, Any]) -> Relationship:
         return Relationship(
             id=payload["id"],
             source_id=payload["source_id"],

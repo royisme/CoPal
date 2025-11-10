@@ -6,7 +6,8 @@ import json
 import sqlite3
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any
+from collections.abc import Iterable, Sequence
 from uuid import uuid4
 
 try:  # pragma: no cover - import guard
@@ -15,11 +16,9 @@ except ModuleNotFoundError:  # pragma: no cover - executed when dependency missi
     class _NodeRegistry(dict):
         def __call__(self, data: bool = False):
             if data:
-                for item in self.items():
-                    yield item
+                yield from self.items()
             else:
-                for key in self.keys():
-                    yield key
+                yield from self.keys()
 
     class _FallbackMultiDiGraph:
         def __init__(self) -> None:

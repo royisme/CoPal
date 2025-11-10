@@ -14,7 +14,7 @@ class ScopeManager:
     _current_scope: str | None = None
 
     @classmethod
-    def from_config(cls, target_root: Path, config: dict[str, object]) -> "ScopeManager":
+    def from_config(cls, target_root: Path, config: dict[str, object]) -> ScopeManager:
         configured = config.get("scope") if isinstance(config, dict) else None
         if isinstance(configured, dict):
             default_scope = str(configured.get("default", target_root.name))
