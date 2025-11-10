@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import logging
 from collections import OrderedDict
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class SkillRegistry:
     def __init__(self, *, root: Path, skills: Iterable[SkillMetadata]):
         self.root = Path(root)
         ordered = sorted(skills, key=lambda skill: skill.name)
-        self._skills: "OrderedDict[str, SkillMetadata]" = OrderedDict(
+        self._skills: OrderedDict[str, SkillMetadata] = OrderedDict(
             (skill.name, skill) for skill in ordered
         )
 
@@ -75,7 +75,7 @@ class SkillRegistry:
         return index_path
 
     @classmethod
-    def from_index(cls, root: Path) -> "SkillRegistry":
+    def from_index(cls, root: Path) -> SkillRegistry:
         index_path = Path(root) / "registry.json"
         if not index_path.exists():
             raise FileNotFoundError(index_path)
@@ -150,7 +150,7 @@ class RegistryError(ValueError):
     """Raised when the skills registry cannot be created."""
 
 
-def _load_yaml_block(block: str) -> Dict[str, object]:
+def _load_yaml_block(block: str) -> dict[str, object]:
     """Parse a minimal subset of YAML for skill metadata."""
 
     block = block.strip()
@@ -168,10 +168,10 @@ def _load_yaml_block(block: str) -> Dict[str, object]:
         return _parse_simple_yaml(block)
 
 
-def _parse_simple_yaml(block: str) -> Dict[str, object]:
-    result: Dict[str, object] = {}
-    current_key: Optional[str] = None
-    current_list: Optional[List[object]] = None
+def _parse_simple_yaml(block: str) -> dict[str, object]:
+    result: dict[str, object] = {}
+    current_key: str | None = None
+    current_list: list[object] | None = None
 
     for raw_line in block.splitlines():
         line = raw_line.strip()
@@ -217,7 +217,7 @@ class SkillMeta:
     skill_path: Path
 
     @classmethod
-    def from_file(cls, path: Path, origin: str) -> "SkillMeta":
+    def from_file(cls, path: Path, origin: str) -> SkillMeta:
         text = path.read_text(encoding="utf-8")
         metadata_block = _extract_metadata_block(text)
         metadata = _load_yaml_block(metadata_block)
@@ -253,7 +253,7 @@ class SkillMeta:
             skill_path=path.parent,
         )
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         return {
             "id": self.identifier,
             "name": self.name,
@@ -289,7 +289,7 @@ class Registry:
     def skills(self) -> Sequence[SkillMeta]:
         return tuple(self._skills)
 
-    def get(self, identifier: str) -> 'SkillEntry | None':
+    def get(self, identifier: str) -> SkillEntry | None:
         skill = self._by_id.get(identifier)
         if skill is None:
             return None
@@ -308,7 +308,7 @@ class Registry:
         output_dir: Path | None = None,
         *,
         prelude_max_chars: int = 1500,
-    ) -> "Registry":
+    ) -> Registry:
         if isinstance(skill_roots, Mapping):
             roots = {origin: Path(root) for origin, root in skill_roots.items()}
             if output_dir is None:
@@ -319,8 +319,8 @@ class Registry:
             roots = {"project": root_path}
             target_dir = Path(output_dir) if output_dir is not None else root_path
 
-        discovered: List[SkillMeta] = []
-        seen_ids: Dict[str, Path] = {}
+        discovered: list[SkillMeta] = []
+        seen_ids: dict[str, Path] = {}
 
         for origin, root in roots.items():
             if root is None:
@@ -367,7 +367,7 @@ def _extract_metadata_block(text: str) -> str:
     if lines[0].strip() != "---":
         raise RegistryError("Skill metadata must start with '---'")
 
-    end_index: Optional[int] = None
+    end_index: int | None = None
     for idx in range(1, len(lines)):
         if lines[idx].strip() == "---":
             end_index = idx
@@ -381,7 +381,7 @@ def _extract_metadata_block(text: str) -> str:
 
 
 def _synthesise_prelude(skills: Sequence[SkillMeta], max_chars: int) -> str:
-    sections: List[str] = []
+    sections: list[str] = []
     for skill in skills:
         section = f"## {skill.name}\n{skill.description.strip()}\n"
         if skill.tags:

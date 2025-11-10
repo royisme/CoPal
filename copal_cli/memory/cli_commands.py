@@ -5,7 +5,8 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
+from collections.abc import Iterable
 from uuid import uuid4
 
 from .config import (
@@ -27,7 +28,7 @@ class MemoryCLIContext:
     scope_manager: ScopeManager
     store: IMemoryStore
 
-    def resolve_scope(self, override: Optional[str]) -> str:
+    def resolve_scope(self, override: str | None) -> str:
         return self.scope_manager.resolve(override)
 
 

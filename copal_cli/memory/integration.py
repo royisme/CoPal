@@ -24,7 +24,7 @@ def maybe_record_stage_memory(
     target_root: Path,
     memory_type: MemoryType,
     content: str,
-    metadata: Optional[dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
     scope_override: str | None = None,
     importance: float = 0.5,
 ) -> None:

@@ -25,7 +25,7 @@ def read_mcp_available(target_root: Path) -> list[str]:
         return []
 
     try:
-        with open(mcp_file, 'r', encoding='utf-8') as f:
+        with open(mcp_file, encoding='utf-8') as f:
             data = json.load(f)
 
         if not isinstance(data, list):

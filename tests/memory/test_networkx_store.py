@@ -9,7 +9,7 @@ from copal_cli.memory.scope import ScopeManager
 
 def build_store(tmp_path: Path):
     target_root = tmp_path / "repo"
-    target_root.mkdir()
+    target_root.mkdir(exist_ok=True)
     config = {"backend": "networkx", "database": ".copal/memory.db"}
     scope_manager = ScopeManager.from_config(target_root, config)
     store = NetworkXMemoryStore(target_root, config=config, scope_manager=scope_manager)

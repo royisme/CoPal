@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-DEFAULT_CONFIG: Dict[str, Any] = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "backend": "networkx",
     "auto_capture": True,
     "database": ".copal/memory.db",
 }
 
 
-def load_memory_config(target_root: Path) -> Dict[str, Any]:
+def load_memory_config(target_root: Path) -> dict[str, Any]:
     """Load memory configuration from `.copal/config.json` if available."""
 
     config_path = target_root / ".copal" / "config.json"
@@ -32,7 +32,7 @@ def load_memory_config(target_root: Path) -> Dict[str, Any]:
     return merged
 
 
-def resolve_database_path(target_root: Path, config: Dict[str, Any]) -> Path:
+def resolve_database_path(target_root: Path, config: dict[str, Any]) -> Path:
     """Determine the persistence path for the memory database."""
 
     database_value = config.get("database", DEFAULT_CONFIG["database"])
@@ -43,9 +43,9 @@ def resolve_database_path(target_root: Path, config: Dict[str, Any]) -> Path:
     return db_path
 
 
-def is_memory_enabled(config: Dict[str, Any]) -> bool:
+def is_memory_enabled(config: dict[str, Any]) -> bool:
     return bool(config.get("enabled", True))
 
 
-def is_auto_capture_enabled(config: Dict[str, Any]) -> bool:
+def is_auto_capture_enabled(config: dict[str, Any]) -> bool:
     return bool(config.get("auto_capture", DEFAULT_CONFIG["auto_capture"]))
