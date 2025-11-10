@@ -1,6 +1,6 @@
 # Changelog
 
-## 2025-05-12 · Local Memory Layer
+## 2025-11-01 · Local Memory Layer
 
 ### Added
 - Introduced a pluggable memory subsystem with a NetworkX + SQLite backend and CLI commands for CRUD operations.
