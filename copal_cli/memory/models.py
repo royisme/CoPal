@@ -7,7 +7,7 @@ The structures defined here are inspired by the mem-layer project
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -15,7 +15,7 @@ ISO_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 def _now() -> datetime:
-    return datetime.utcnow()
+    return datetime.now(UTC)
 
 
 def _serialize_datetime(value: datetime | None) -> str | None:
