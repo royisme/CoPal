@@ -27,4 +27,7 @@
 - Runbooks:
 - FAQ / troubleshooting:
 
+### MCP Tooling Notes
+Use this section to add project-level MCP tool policies that override or extend the global templates (e.g., extra rules for Serena or other tools declared in `.copal/mcp-available.json`).
+
 > Create additional structured docs elsewhere in the repository and link them here so the agent can find everything after reading `AGENTS.md`.

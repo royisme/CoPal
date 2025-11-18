@@ -73,6 +73,11 @@ Each block referenced in `inject` lives under `.copal/hooks/mcp/` and contains s
 - **When**: Both `active-file` and `file-tree` are present during `implement`
 - **Content**: Locate files, apply changes, write tests, and capture patch notes.
 
+### Serena – End-to-end example
+- **Tool docs**: Write the primary guidance under `.copal/global/knowledge-base/toolsets/project/mcp-serena.en.md` (tool-agnostic overview lives beside it in `mcp-overview.en.md`).
+- **Hook blocks**: Add concise stage tips under `.copal/hooks/mcp/serena/usage.<stage>.md` for the stages you want to support (e.g., `analysis`, `plan`, `implement`, `review`).
+- **Routing rule**: Register each stage in `.copal/hooks/hooks.yaml` using `any_mcp: ["serena"]` and an `inject` path that matches the block. This ensures prompts pull the right hints whenever the project declares Serena in `.copal/mcp-available.json`.
+
 ## Workflow
 
 1. **Command execution** – The user runs a stage command, e.g. `copal analyze`.

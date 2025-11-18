@@ -209,6 +209,10 @@ Create `.copal/mcp-available.json` in the project root:
 - **context7** – Adds documentation lookup tips to the Analyze and Plan stages.
 - **active-file + file-tree** – Adds navigation guidance to the Implement stage.
 
+### MCP Tools Integration
+
+This repository uses CoPal's MCP hook system to inject tool guidance into each stage prompt. Before using any MCP tool (e.g., Serena), read the global knowledge base entries in `.copal/global/knowledge-base/toolsets/project/mcp-overview.en.md` and the tool's page (for Serena: `mcp-serena.en.md` when declared in `.copal/mcp-available.json`). Do not run risky operations without following the documented instructions.
+
 ---
 
 ## Quick Start Example

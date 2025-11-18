@@ -24,3 +24,31 @@ rules:
     all_mcp: ["active-file", "file-tree"]
     inject:
       - "mcp/active-file/usage.implement.md"
+
+  # Serena hooks for analysis stage
+  - id: serena-analysis
+    stage: analysis
+    any_mcp: ["serena"]
+    inject:
+      - "mcp/serena/usage.analysis.md"
+
+  # Serena hooks for planning stage
+  - id: serena-plan
+    stage: plan
+    any_mcp: ["serena"]
+    inject:
+      - "mcp/serena/usage.plan.md"
+
+  # Serena hooks for implementation stage
+  - id: serena-implement
+    stage: implement
+    any_mcp: ["serena"]
+    inject:
+      - "mcp/serena/usage.implement.md"
+
+  # Serena hooks for review stage
+  - id: serena-review
+    stage: review
+    any_mcp: ["serena"]
+    inject:
+      - "mcp/serena/usage.review.md"
