@@ -24,6 +24,11 @@ from .skills.commands import (
     scaffold_command as skill_scaffold_command,
     search_command as skill_search_command,
 )
+from .worktree.commands import (
+    handle_new as worktree_new_command,
+    handle_list as worktree_list_command,
+    handle_remove as worktree_remove_command,
+)
 from .validator import validate_command
 from .stages import (
     analyze_command,
@@ -104,6 +109,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable verbose logging output",
     )
     validate_parser.set_defaults(handler=_handle_validate)
+
+    # Worktree commands
+    wt_parser = subparsers.add_parser(
+        "worktree",
+        aliases=["wt"],
+        help="Manage git worktrees for isolated AI tasks",
+    )
+    wt_subparsers = wt_parser.add_subparsers(dest="worktree_command", required=True)
+
+    wt_new_parser = wt_subparsers.add_parser("new", help="Create a new worktree")
+    wt_new_parser.add_argument("name", help="Name of the worktree/task")
+    wt_new_parser.add_argument("--branch", help="Branch name (defaults to name)")
+    wt_new_parser.add_argument("--base", help="Base branch to checkout from")
+    wt_new_parser.set_defaults(handler=worktree_new_command)
+
+    wt_list_parser = wt_subparsers.add_parser("list", help="List worktrees")
+    wt_list_parser.set_defaults(handler=worktree_list_command)
+
+    wt_rm_parser = wt_subparsers.add_parser("remove", aliases=["rm"], help="Remove a worktree")
+    wt_rm_parser.add_argument("name", help="Name of the worktree to remove")
+    wt_rm_parser.add_argument("--force", "-f", action="store_true", help="Force removal")
+    wt_rm_parser.set_defaults(handler=worktree_remove_command)
 
     # Skill commands
     skill_parser = subparsers.add_parser(
@@ -550,6 +577,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "init":
         return args.handler(args)
     if args.command == "validate":
+        return args.handler(args)
+    if args.command == "worktree" or args.command == "wt":
         return args.handler(args)
     if args.command == "skill":
         return args.handler(args)

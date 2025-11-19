@@ -57,6 +57,13 @@ CoPal provides a structured software development workflow:
 - Flexible hook configuration
 - Support for context7, active-file, file-tree, and more
 
+### 🌳 Git Worktree Management
+- Isolated workspaces for parallel AI tasks
+- Automatic asset synchronization (knowledge base, skills)
+- Independent runtime environments per worktree
+- Seamless multi-agent collaboration
+- One command setup and teardown
+
 ## Quick Start
 
 ### Installation
@@ -213,6 +220,16 @@ copal resume
 | `copal memory summary` | Show memory statistics |
 
 Memory types include: `decision`, `preference`, `experience`, `plan`, `note`
+
+### Worktree Commands
+
+| Command | Purpose |
+| ------- | ------- |
+| `copal worktree new <name> [--branch <branch>] [--base <base>]` | Create a new isolated worktree for an AI task |
+| `copal worktree list` | List all active worktrees |
+| `copal worktree remove <name> [--force]` | Remove a worktree |
+
+**Alias**: `copal wt` can be used instead of `copal worktree`
 
 ## Knowledge Base
 

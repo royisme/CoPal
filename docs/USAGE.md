@@ -529,6 +529,166 @@ Configure in `.copal/memory-config.json`:
   - `workflow_run` - Independent scope per workflow run
   - `global` - Global scope
 
+## Worktree Management
+
+The worktree management system enables isolated workspaces for parallel AI tasks. Each worktree is a complete, independent copy of your repository that shares the same git history but has its own working directory and independent state.
+
+### Why Use Worktrees?
+
+- **Parallel Development**: Multiple AI agents can work on different tasks simultaneously
+- **Clean Contexts**: Each task gets its own isolated runtime environment
+- **No Interference**: Changes in one worktree don't affect others
+- **Shared Knowledge**: Knowledge base and skills are automatically synced
+- **Easy Cleanup**: Remove worktrees when tasks are complete
+
+### Create a New Worktree
+
+```bash
+# Create worktree for a new task
+copal worktree new feature/user-auth
+
+# Create with specific branch name
+copal worktree new my-task --branch feature/auth-refactor
+
+# Create from a specific base branch
+copal worktree new hotfix-123 --base main
+```
+
+**What happens:**
+1. Git creates a new worktree in `../{repo-name}.wt/{task-name}`
+2. CoPal copies `.copal/global/` (knowledge base)
+3. CoPal copies `.copal/skills/` (skill registry)
+4. CoPal copies `.copal/memory-config.json` and `.copal/mcp-available.json`
+5. CoPal creates empty `.copal/runtime/` for fresh workflow state
+
+### List Worktrees
+
+```bash
+# List all worktrees
+copal worktree list
+```
+
+Output shows:
+- Worktree path
+- Branch name
+- HEAD commit
+
+### Switch to a Worktree
+
+CoPal worktrees are just directories. Navigate to them:
+
+```bash
+# Change to worktree directory
+cd /path/to/repo.wt/feature-user-auth
+
+# Or use the full path from worktree list output
+cd $(copal worktree list | grep feature-user-auth | awk '{print $1}')
+```
+
+### Remove a Worktree
+
+```bash
+# Remove completed worktree
+copal worktree remove feature/user-auth
+
+# Force removal (even with uncommitted changes)
+copal worktree remove feature/user-auth --force
+```
+
+### Worktree Best Practices
+
+#### 1. Use Worktrees for Parallel Tasks
+
+```bash
+# Main repo: analysis and planning
+cd /path/to/main-repo
+copal analyze --title "Refactor auth system"
+copal spec
+copal plan
+
+# Worktree 1: Backend implementation
+copal worktree new auth-backend
+cd ../repo.wt/auth-backend
+copal implement  # Works on backend
+
+# Worktree 2: Frontend implementation (parallel)
+copal worktree new auth-frontend
+cd ../repo.wt/auth-frontend
+copal implement  # Works on frontend simultaneously
+```
+
+#### 2. Share Knowledge, Isolate Runtime
+
+- **Shared** (copied to each worktree):
+  - `.copal/global/` - Knowledge base
+  - `.copal/skills/` - Skill registry
+  - `.copal/memory-config.json` - Memory configuration
+  - `.copal/mcp-available.json` - MCP tools
+
+- **Isolated** (independent per worktree):
+  - `.copal/runtime/` - Generated prompts
+  - `.copal/artifacts/` - Workflow artifacts
+  - `.copal/memory/` - Memory storage (if not using shared DB)
+  - Working directory changes
+
+#### 3. Clean Up Completed Work
+
+```bash
+# After merging, remove the worktree
+git checkout main
+git merge auth-backend
+copal worktree remove auth-backend
+```
+
+#### 4. Naming Conventions
+
+Use descriptive names that reflect the task:
+- `feature/user-auth` - Feature development
+- `bugfix/login-crash` - Bug fixes
+- `refactor/api-layer` - Refactoring tasks
+- `experiment/new-ui` - Experimental work
+
+### Worktree Aliases
+
+Use `copal wt` as a shorthand:
+
+```bash
+copal wt new my-task
+copal wt list
+copal wt remove my-task
+```
+
+### Advanced Scenarios
+
+#### Multiple Agents on Same Branch
+
+If you need multiple worktrees on the same branch (e.g., different parts of implementation):
+
+```bash
+# First worktree
+copal wt new backend-api --branch feature/api-v2
+
+# Second worktree on same branch (different directory)
+copal wt new frontend-ui --branch feature/api-v2
+```
+
+Note: Git worktrees normally prevent checking out the same branch twice. CoPal's implementation creates unique branch names or worktree paths to avoid this limitation.
+
+#### Sharing Memory Across Worktrees
+
+To share memory between worktrees, configure memory to use a shared database in the main repo:
+
+```json
+{
+  "backend": "networkx",
+  "database": "/absolute/path/to/main-repo/.copal/shared-memory.db",
+  "auto_capture": true,
+  "scope_strategy": "global"
+}
+```
+
+Then copy this config to all worktrees.
+
 ## MCP Configuration
 
 The Model Context Protocol (MCP) hook system injects tool-specific guidance into stage prompts.

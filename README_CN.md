@@ -57,6 +57,13 @@ CoPal 提供结构化的软件开发工作流：
 - 灵活的钩子配置
 - 支持 context7、active-file、file-tree 等工具
 
+### 🌳 Git Worktree 管理
+- 为并行 AI 任务提供隔离的工作空间
+- 自动资产同步（知识库、技能）
+- 每个 worktree 独立的运行时环境
+- 无缝的多代理协作
+- 一键创建和销毁
+
 ## 快速开始
 
 ### 安装
@@ -170,6 +177,16 @@ copal resume
 | `copal memory summary` | 显示记忆统计信息 |
 
 记忆类型包括：`decision`（决策）、`preference`（偏好）、`experience`（经验）、`plan`（计划）、`note`（笔记）
+
+### Worktree 命令
+
+| 命令 | 用途 |
+| ------- | ------- |
+| `copal worktree new <名称> [--branch <分支>] [--base <基础分支>]` | 为 AI 任务创建新的隔离 worktree |
+| `copal worktree list` | 列出所有活动的 worktree |
+| `copal worktree remove <名称> [--force]` | 删除 worktree |
+
+**别名**：可以使用 `copal wt` 代替 `copal worktree`
 
 ## 项目结构
 

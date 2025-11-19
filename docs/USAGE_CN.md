@@ -532,6 +532,166 @@ copal memory summary
   - `workflow_run` - 每次工作流运行独立作用域
   - `global` - 全局作用域
 
+## Worktree 管理
+
+Worktree 管理系统为并行 AI 任务提供隔离的工作空间。每个 worktree 是仓库的完整、独立副本，共享相同的 git 历史记录，但拥有自己的工作目录和独立状态。
+
+### 为什么使用 Worktree？
+
+- **并行开发**：多个 AI 代理可以同时处理不同的任务
+- **干净的上下文**：每个任务都有自己隔离的运行时环境
+- **无干扰**：一个 worktree 中的更改不会影响其他 worktree
+- **共享知识**：知识库和技能会自动同步
+- **易于清理**：任务完成后删除 worktree
+
+### 创建新的 Worktree
+
+```bash
+# 为新任务创建 worktree
+copal worktree new feature/user-auth
+
+# 使用指定的分支名称创建
+copal worktree new my-task --branch feature/auth-refactor
+
+# 从特定基础分支创建
+copal worktree new hotfix-123 --base main
+```
+
+**执行过程：**
+1. Git 在 `../{repo-name}.wt/{task-name}` 创建新 worktree
+2. CoPal 复制 `.copal/global/`（知识库）
+3. CoPal 复制 `.copal/skills/`（技能注册表）
+4. CoPal 复制 `.copal/memory-config.json` 和 `.copal/mcp-available.json`
+5. CoPal 创建空的 `.copal/runtime/` 以获得全新的工作流状态
+
+### 列出 Worktree
+
+```bash
+# 列出所有 worktree
+copal worktree list
+```
+
+输出显示：
+- Worktree 路径
+- 分支名称
+- HEAD 提交
+
+### 切换到 Worktree
+
+CoPal worktree 只是目录。导航到它们：
+
+```bash
+# 切换到 worktree 目录
+cd /path/to/repo.wt/feature-user-auth
+
+# 或使用 worktree list 输出的完整路径
+cd $(copal worktree list | grep feature-user-auth | awk '{print $1}')
+```
+
+### 删除 Worktree
+
+```bash
+# 删除已完成的 worktree
+copal worktree remove feature/user-auth
+
+# 强制删除（即使有未提交的更改）
+copal worktree remove feature/user-auth --force
+```
+
+### Worktree 最佳实践
+
+#### 1. 为并行任务使用 Worktree
+
+```bash
+# 主仓库：分析和计划
+cd /path/to/main-repo
+copal analyze --title \"重构认证系统\"
+copal spec
+copal plan
+
+# Worktree 1：后端实现
+copal worktree new auth-backend
+cd ../repo.wt/auth-backend
+copal implement  # 处理后端
+
+# Worktree 2：前端实现（并行）
+copal worktree new auth-frontend
+cd ../repo.wt/auth-frontend
+copal implement  # 同时处理前端
+```
+
+#### 2. 共享知识，隔离运行时
+
+- **共享**（复制到每个 worktree）：
+  - `.copal/global/` - 知识库
+  - `.copal/skills/` - 技能注册表
+  - `.copal/memory-config.json` - 记忆配置
+  - `.copal/mcp-available.json` - MCP 工具
+
+- **隔离**（每个 worktree 独立）：
+  - `.copal/runtime/` - 生成的提示词
+  - `.copal/artifacts/` - 工作流产物
+  - `.copal/memory/` - 记忆存储（如果不使用共享数据库）
+  - 工作目录更改
+
+#### 3. 清理完成的工作
+
+```bash
+# 合并后，删除 worktree
+git checkout main
+git merge auth-backend
+copal worktree remove auth-backend
+```
+
+#### 4. 命名约定
+
+使用反映任务的描述性名称：
+- `feature/user-auth` - 功能开发
+- `bugfix/login-crash` - 错误修复
+- `refactor/api-layer` - 重构任务
+- `experiment/new-ui` - 实验性工作
+
+### Worktree 别名
+
+使用 `copal wt` 作为简写：
+
+```bash
+copal wt new my-task
+copal wt list
+copal wt remove my-task
+```
+
+### 高级场景
+
+#### 同一分支上的多个代理
+
+如果需要在同一分支上创建多个 worktree（例如，实现的不同部分）：
+
+```bash
+# 第一个 worktree
+copal wt new backend-api --branch feature/api-v2
+
+# 同一分支上的第二个 worktree（不同目录）
+copal wt new frontend-ui --branch feature/api-v2
+```
+
+注意：Git worktree 通常会阻止签出同一分支两次。CoPal 的实现创建唯一的分支名称或 worktree 路径以避免此限制。
+
+#### 跨 Worktree 共享记忆
+
+要在 worktree 之间共享记忆，请配置记忆使用主仓库中的共享数据库：
+
+```json
+{
+  \"backend\": \"networkx\",
+  \"database\": \"/absolute/path/to/main-repo/.copal/shared-memory.db\",
+  \"auto_capture\": true,
+  \"scope_strategy\": \"global\"
+}
+```
+
+然后将此配置复制到所有 worktree。
+
 ## MCP 配置
 
 Model Context Protocol (MCP) 钩子系统将工具特定的指导注入到阶段提示词中。
