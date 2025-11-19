@@ -61,37 +61,80 @@ CoPal provides a structured software development workflow:
 
 ### Installation
 
+#### Recommended: run via `uvx` (no global install)
+
+If you already have `uv` installed, you can run CoPal without installing it globally:
+
 ```bash
-# Clone the repository
+uvx copal-cli --help
+uvx copal-cli init --target .
+```
+
+This will download the latest released `copal-cli` package, create an isolated environment for it, and run the `copal` CLI inside your current project directory.
+
+#### Alternative: install the CLI as a tool
+
+If you prefer a persistent CLI installation, you can use `uv tool` or `pipx`:
+
+```bash
+# Using uv tool
+uv tool install copal-cli
+copal --help
+
+# Or with pipx
+pipx install copal-cli
+copal --help
+
+# Or with plain pip (inside a virtualenv)
+python -m pip install copal-cli
+copal --help
+```
+
+Use whichever tool you are most comfortable with. We recommend `uv` or `pipx` to avoid polluting your global Python environment.
+
+#### Development (from source, for contributors)
+
+If you want to hack on CoPal itself or contribute changes:
+
+```bash
 git clone https://github.com/royisme/CoPal.git
 cd CoPal
 
-# Install locally (development mode)
-pip install -e .
+# Option A: using uv to manage the virtualenv
+uv sync
 
-# Or install with development dependencies
-pip install -e ".[dev]"
+# Option B: using pip directly
+python -m venv .venv
+source .venv/bin/activate    # On Windows: .venv\Scripts\activate
+pip install -e "[dev]"
+
+# Now you can run the CLI from this environment:
+uv run copal --help   # if using uv
+# or simply:
+copal --help
 ```
 
-### Initialize Your Project
+### Initialize CoPal in your project
 
-Initialize CoPal in your project root directory:
+Once the `copal` CLI is available (either via `uvx`, `uv tool`, `pipx`, or a local install), you should initialize CoPal **in the root directory of the project that you want to instrument with CoPal**.
 
 ```bash
-# Initialize CoPal assets in current directory
+cd /path/to/your/project
+
+# Initialize CoPal assets into the current repository
 copal init --target .
 
-# Preview what files would be created (dry-run)
+# Preview what would be created (dry-run)
 copal init --dry-run
 
-# Force overwrite existing files
+# Force overwrite existing CoPal assets (be careful)
 copal init --force
 ```
 
-This creates:
-- `AGENTS.md` - Root navigation guide
-- `UserAgents.md` - Placeholder for project-specific guidance
-- `.copal/` - Shared knowledge base, hooks, and MCP metadata
+Important:
+
+* Do **not** run `copal init --target .` in the CoPal source repository itself, unless you know exactly what you are doing.
+* The intent is to initialize CoPal's `.copal` folder, templates, and agent guides inside **your own application or service repository**.
 
 ### Configure MCP Tools (Optional)
 
