@@ -106,7 +106,7 @@ uv sync
 # Option B: using pip directly
 python -m venv .venv
 source .venv/bin/activate    # On Windows: .venv\Scripts\activate
-pip install -e "[dev]"
+pip install -e ".[dev]"
 
 # Now you can run the CLI from this environment:
 uv run copal --help   # if using uv
