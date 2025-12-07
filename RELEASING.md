@@ -54,7 +54,40 @@ python -m pip install twine
 twine upload dist/*
 ```
 
-## 4. Versioning notes
+## Release Workflow
 
-- Update the `version` field in `pyproject.toml` before building a new release, or use your preferred version management strategy (e.g. tags + setuptools_scm).
-- Keep the changelog (if any) and README in sync with the features included in the release.
+### 1. Version Bump (Automated)
+
+We use `bump-my-version` to manage version strings across the codebase (`pyproject.toml`, `init.py`, etc.).
+
+```bash
+# Bump patch version (0.1.0 -> 0.1.1)
+uv run bump-my-version bump patch
+
+# Bump minor version (0.1.0 -> 0.2.0)
+uv run bump-my-version bump minor
+```
+
+This will automatically:
+
+- Update version strings in all configured files.
+- Create a git commit.
+- Create a git tag (e.g., `v0.1.1`).
+
+**Critical**: Push the commit and tags to the remote repository.
+
+```bash
+git push --follow-tags
+```
+
+### 2. Build
+
+```bash
+uv build
+```
+
+### 3. Publish to PyPI
+
+```bash
+uv publish
+```
