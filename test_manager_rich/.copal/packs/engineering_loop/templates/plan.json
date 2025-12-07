@@ -1,0 +1,22 @@
+{
+  "status": "draft",
+  "version": 1,
+  "task": {
+    "original": "",
+    "interpreted": ""
+  },
+  "goal": "",
+  "scope": {
+    "in": [],
+    "out": []
+  },
+  "steps": [],
+  "files": {
+    "create": [],
+    "modify": [],
+    "delete": []
+  },
+  "risks": [],
+  "questions": [],
+  "estimated_complexity": "low"
+}

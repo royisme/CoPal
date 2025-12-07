@@ -72,30 +72,14 @@ def status_command(target: str = ".") -> int:
         table.add_row(name, status)
     console.print(table)
     
-    # Artifact Status
-    console.print("\n[bold]Artifacts Status:[/bold]")
-    artifacts_dir = target_path / manifest.artifacts.dir
-    
-    if not artifacts_dir.exists():
-         console.print("  [yellow]No artifacts directory found.[/yellow]")
-    else:
-        # Check standard artifacts if active pack defines them
-        expected = ["plan.json", "research.json", "todo.json", "findings.json", "test_plan.md"]
-        
-        for name in expected:
-             p = artifacts_dir / name
-             if p.exists():
-                 # Basic check for JSON
-                 if name.endswith(".json"):
-                     try:
-                         data = json.loads(p.read_text())
-                         status = data.get("status", "valid")
-                         console.print(f"  [green]✓ {name}[/green] ({status})")
-                     except:
-                         console.print(f"  [red]✗ {name}[/red] (Invalid JSON)")
-                 else:
-                     console.print(f"  [green]✓ {name}[/green]")
-             else:
-                 console.print(f"  [dim]○ {name}[/dim]")
+    # Agent Manager Summary (Todo)
+    from .agent_manager import AgentManager
+    console.print()
+    try:
+        mgr = AgentManager(target_path)
+        mgr.summary()
+    except Exception:
+        # Fallback if no todo found or error
+        console.print("[dim]No active engineering loop found.[/dim]")
 
     return 0

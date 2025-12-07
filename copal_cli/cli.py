@@ -11,6 +11,8 @@ from .harness.init import init_command as harness_init_command
 from .harness.validate import validate_command as harness_validate_command
 from .harness.export import export_command as harness_export_command
 from .harness.status import status_command as harness_status_command
+from .harness.status import status_command as harness_status_command
+from .harness.agent_manager import AgentManager
 
 # Keep existing imports for other commands
 from .memory.cli_commands import (
@@ -129,6 +131,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="Target repository path (default: current directory)",
     )
     status_parser.set_defaults(handler=_handle_status)
+
+    # Next command
+    next_parser = subparsers.add_parser(
+        "next",
+        help="Get the next task in the engineering loop",
+    )
+    next_parser.add_argument(
+        "--target",
+        default=".",
+        help="Target repository path (default: current directory)",
+    )
+    next_parser.add_argument(
+        "--id",
+        help="Specific task ID to start",
+    )
+    next_parser.set_defaults(handler=_handle_next)
+
+    # Done command
+    done_parser = subparsers.add_parser(
+        "done",
+        help="Mark a task as done",
+    )
+    done_parser.add_argument(
+        "id",
+        nargs="?",
+        help="Task ID to mark as done (default: current active task)",
+    )
+    done_parser.add_argument(
+        "--target",
+        default=".",
+        help="Target repository path (default: current directory)",
+    )
+    done_parser.set_defaults(handler=_handle_done)
 
     # Worktree commands
     wt_parser = subparsers.add_parser(
@@ -318,6 +353,42 @@ def _handle_export(args: argparse.Namespace) -> int:
 
 def _handle_status(args: argparse.Namespace) -> int:
     return harness_status_command(target=args.target)
+
+
+def _handle_next(args: argparse.Namespace) -> int:
+    manager = AgentManager(Path(args.target).resolve())
+    # Advance task logic
+    if manager.advance_task(task_id=getattr(args, "id", None)):
+        return 0
+    return 1
+
+def _handle_done(args: argparse.Namespace) -> int:
+    manager = AgentManager(Path(args.target).resolve())
+    task_id = args.id
+    
+    if not task_id:
+        # Try to infer current task? Or just error for now.
+        # Ideally manager tracks "active" task.
+        # For v0.1 we require ID or find first in_progress.
+        # Let's simple ask Manager to find 'in_progress' one if ID is missing.
+        # But for now, let's require ID or infer from Manager.
+        
+        # Let's check "in_progress" items
+        data = manager.load_todo()
+        items = data.get("items", [])
+        in_progress = [i for i in items if i.get("status") == "in_progress"]
+        if len(in_progress) == 1:
+            task_id = in_progress[0].get("id")
+        elif len(in_progress) > 1:
+             print("Multiple tasks in progress. Please specify ID.")
+             return 1
+        else:
+             print("No active task found. Specify ID.")
+             return 1
+
+    if manager.complete_task(task_id):
+        return 0
+    return 1
 
 
 def main(argv: list[str] | None = None) -> int:

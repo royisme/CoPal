@@ -1,0 +1,8 @@
+{
+  "generated_from": "plan.json",
+  "items": [
+    { "id": "1", "action": "Design UI", "status": "todo" },
+    { "id": "2", "action": "Implement Backend", "status": "todo" },
+    { "id": "3", "action": "Deploy", "status": "blocked" }
+  ]
+}
