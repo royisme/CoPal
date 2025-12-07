@@ -12,6 +12,7 @@ def test_claude_adapter_export(tmp_path):
     
     pack = MagicMock(spec=Pack)
     pack.name = "test-pack"
+    pack.description = "Test Pack Description"
     pack.workflows = {
         "plan": "workflows/plan.md"
     }
@@ -32,13 +33,25 @@ def test_claude_adapter_export(tmp_path):
     adapter = ClaudeAdapter(manifest, target_root)
     adapter.export(pack)
     
-    # Verify output
+    # Verify Subagent config
+    agent_file = target_root / ".claude" / "agents" / "copal-planner.md"
+    assert agent_file.exists()
+    agent_content = agent_file.read_text()
+    assert "System: Planner" in agent_content
+    assert "Copal Planner Agent" in agent_content
+    
+    # Verify Command Config
     cmd_file = target_root / ".claude" / "commands" / "copal" / "plan.md"
     assert cmd_file.exists()
-    content = cmd_file.read_text()
-    assert "# Plan Workflow" in content
-    assert "System: Planner" in content  # Checks prompt injection if implemented
-    assert "CLAUDE.md" not in content # Minimal check
+    cmd_content = cmd_file.read_text()
+    assert "# Plan Workflow" in cmd_content
+    assert "AGENT SWITCH" in cmd_content
+    assert "copal-planner" in cmd_content
+    
+    # Verify Start Command
+    start_cmd = target_root / ".claude" / "commands" / "copal" / "start.md"
+    assert start_cmd.exists()
+    assert "copal-orchestrator" in start_cmd.read_text()
 
 def test_claude_adapter_name(tmp_path):
     adapter = ClaudeAdapter(MagicMock(), tmp_path)

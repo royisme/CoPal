@@ -104,8 +104,14 @@ def init_command(target: str = ".", force: bool = False, dry_run: bool = False, 
 def _create_structure(copal_dir: Path, dry_run: bool):
     if not dry_run:
         copal_dir.mkdir(parents=True, exist_ok=True)
-        (copal_dir / "artifacts").mkdir(exist_ok=True)
-        (copal_dir / "runtime").mkdir(exist_ok=True) # Generated prompts go here
+        
+        artifacts_dir = copal_dir / "artifacts"
+        artifacts_dir.mkdir(exist_ok=True)
+        (artifacts_dir / ".gitkeep").touch()
+
+        runtime_dir = copal_dir / "runtime"
+        runtime_dir.mkdir(exist_ok=True) # Generated prompts go here
+        (runtime_dir / ".gitkeep").touch()
 
 def _generate_manifest(target_path: Path, tools: List[str], packs: List[str], default_pack: str, force: bool, dry_run: bool):
     dst = target_path / ".copal" / "manifest.yaml"
