@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string" },
+    "version": { "type": "integer" },
+    "task": { "type": "object" },
+    "goal": { "type": "string" },
+    "scope": { "type": "object" },
+    "steps": { "type": "array" },
+    "files": { "type": "object" },
+    "risks": { "type": "array" }
+  },
+  "required": ["status", "task", "goal", "steps"]
+}

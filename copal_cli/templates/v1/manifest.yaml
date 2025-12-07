@@ -1,0 +1,20 @@
+version: "0.1"
+project:
+  name: my-project
+  description: "A sample project using Copal"
+default_pack: engineering_loop
+
+verify:
+  command: .copal/packs/engineering_loop/scripts/verify.sh
+  # windows_command: .copal/packs/engineering_loop/scripts/verify.ps1
+
+artifacts:
+  dir: .copal/artifacts
+  commit_policy: optional
+
+packs:
+  - name: engineering_loop
+    path: .copal/packs/engineering_loop
+
+adapters:
+  - claude

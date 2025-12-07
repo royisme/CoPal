@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "backend": "networkx",
+    "backend": "sqlite",
     "auto_capture": True,
     "database": ".copal/memory.db",
 }

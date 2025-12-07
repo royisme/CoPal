@@ -1,11 +1,10 @@
 """Abstract interface for memory back-ends."""
 
-from __future__ import annotations
 
 from typing import Any, Protocol
-from collections.abc import Iterable, Sequence
+from collections.abc import  Sequence
 
-from .models import Memory, MemoryType, Relationship
+from .models import Memory, Relationship
 
 
 class IMemoryStore(Protocol):
@@ -33,33 +32,22 @@ class IMemoryStore(Protocol):
     def delete_memory(self, memory_id: str, scope: str | None = None) -> bool:
         """Delete a memory and return whether deletion occurred."""
 
-    def supersede_memory(
-        self,
-        old_memory_id: str,
-        new_memory: Memory,
-        relationship_metadata: dict[str, Any] | None = None,
-    ) -> Memory:
-        """Create a new memory that supersedes an existing one."""
-
     def search_memories(
         self,
         query: str,
         *,
         scope: str | None = None,
-        types: Iterable[MemoryType] | None = None,
+        types: Sequence[Any] | None = None,
     ) -> list[Memory]:
-        """Search for memories matching the provided query."""
+        """Search memories matching query and filters."""
 
     def list_memories(
         self,
         *,
         scope: str | None = None,
-        types: Iterable[MemoryType] | None = None,
+        types: Sequence[Any] | None = None,
     ) -> list[Memory]:
-        """Return all memories in scope, optionally filtered by type."""
-
-    def summarise_project(self, scope: str | None = None) -> dict[str, Any]:
-        """Return an aggregate summary of stored memories."""
+        """List memories matching filters."""
 
     def list_relationships(
         self,
@@ -68,3 +56,6 @@ class IMemoryStore(Protocol):
         scope: str | None = None,
     ) -> list[Relationship]:
         """Return relationships originating from the memory."""
+
+    def close(self) -> None:
+        """Close any open resources (e.g. database connections)."""

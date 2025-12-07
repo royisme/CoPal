@@ -1,0 +1,33 @@
+name: engineering_loop
+version: "0.1.0"
+description: "Standard Plan-Research-Work-Review Development Loop"
+
+workflows:
+  plan: workflows/plan.md
+  research: workflows/research.md
+  confirm: workflows/confirm.md
+  work: workflows/work.md
+  review: workflows/review.md
+  codify: workflows/codify.md
+
+prompts:
+  orchestrator: prompts/orchestrator.md
+  planner: prompts/planner.md
+  researcher: prompts/researcher.md
+  worker: prompts/worker.md
+  reviewer: prompts/reviewer.md
+  codifier: prompts/codifier.md
+  single_agent: prompts/single_agent.md
+
+templates:
+  plan: templates/plan.json
+  todo: templates/todo.json
+
+schemas:
+  plan: schemas/plan.schema.json
+  research: schemas/research.schema.json
+  todo: schemas/todo.schema.json
+  findings: schemas/findings.schema.json
+
+scripts:
+  verify_posix: scripts/verify.sh

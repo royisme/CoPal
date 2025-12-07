@@ -35,20 +35,26 @@ Replace `<version>` with the actual version you just built.
 
 ## 3. Publish to PyPI
 
-If you want to publish `copal-cli` to PyPI, you can use either `twine` or `uv`:
+## 3. Publish to PyPI
+
+**Recommended**: Use `uv` for a fast and secure release.
 
 ```bash
-# Using twine
-python -m pip install twine
-twine upload dist/*
+# 1. Configure PyPI token (if not already set)
+# export UV_PUBLISH_TOKEN=pypi-...
 
-# Or using uv (if configured)
+# 2. Publish
 uv publish
 ```
 
-Make sure you have valid PyPI credentials configured before running these commands.
+**Alternative**: Use `twine`
+
+```bash
+python -m pip install twine
+twine upload dist/*
+```
 
 ## 4. Versioning notes
 
-* Update the `version` field in `pyproject.toml` before building a new release, or use your preferred version management strategy (e.g. tags + setuptools_scm).
-* Keep the changelog (if any) and README in sync with the features included in the release.
+- Update the `version` field in `pyproject.toml` before building a new release, or use your preferred version management strategy (e.g. tags + setuptools_scm).
+- Keep the changelog (if any) and README in sync with the features included in the release.

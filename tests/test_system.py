@@ -11,6 +11,46 @@ import pytest
 from copal_cli.system.fs import ensure_runtime_dirs, read_text, write_text
 from copal_cli.system.mcp import read_mcp_available
 from copal_cli.system.hooks import select_injection_blocks, _parse_hooks_yaml
+from copal_cli.system.prompt_builder import render_stage_prompt
+
+
+class TestPromptBuilder:
+    def test_render_stage_prompt_basic(self, tmp_path):
+        # Setup
+        role_tmpl = tmp_path / "role.md"
+        role_tmpl.write_text("ROLE CONTENT")
+        
+        hooks_yaml = tmp_path / "hooks.yaml"
+        # We Mock select_injection_blocks instead of parsing real hooks again
+        
+        runtime_dir = tmp_path / "runtime"
+        runtime_dir.mkdir()
+        
+        with patch("copal_cli.system.prompt_builder.select_injection_blocks", return_value=["block.md"]), \
+             patch("copal_cli.system.prompt_builder.read_text") as mock_read:
+             
+            # Mock reading role and block
+            def side_effect(path):
+                if str(path).endswith("role.md"): return "ROLE CONTENT"
+                if str(path).endswith("block.md"): return "BLOCK CONTENT"
+                raise FileNotFoundError(path)
+                
+            mock_read.side_effect = side_effect
+            
+            output = render_stage_prompt(
+                stage="plan",
+                role_template_path=role_tmpl,
+                hooks_yaml_path=hooks_yaml,
+                templates_root=tmp_path,
+                runtime_dir=runtime_dir,
+                mcp_available=[]
+            )
+            
+            assert output.exists()
+            content = output.read_text()
+            assert "ROLE CONTENT" in content
+            assert "BLOCK CONTENT" in content
+            assert "# CoPal Runtime Prompt" in content
 
 
 class TestFsUtils:

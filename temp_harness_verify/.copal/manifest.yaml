@@ -1,0 +1,22 @@
+version: "0.1.0"
+project:
+  name: temp_harness_verify
+  description: "Project initialized with Copal"
+default_pack: engineering_loop
+
+# Active packs for this project
+packs:
+  - engineering_loop
+
+# Enabled AI tools (adapters)
+tools:
+  - claude
+
+# Verification command (Agent runs this to verify work)
+verify:
+  command: .copal/packs/engineering_loop/scripts/verify.sh
+
+# Memory configuration
+memory:
+  backend: json
+  path: .copal/memory

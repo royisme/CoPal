@@ -167,6 +167,9 @@ class SQLiteMemoryPersistence:
                 "DELETE FROM relationships WHERE id = ?", (relationship_id,)
             )
 
+    def close(self) -> None:
+        self._conn.close()
+
 
 class NetworkXMemoryStore(IMemoryStore):
     """Concrete :class:`IMemoryStore` built on a NetworkX MultiDiGraph."""
@@ -184,6 +187,30 @@ class NetworkXMemoryStore(IMemoryStore):
         self._scope_manager = scope_manager
         self._query_engine = MemoryQueryEngine(self._graph)
         self._load_from_persistence()
+
+    # ... (skipping unchanged parts)
+
+    def list_relationships(
+        self,
+        memory_id: str,
+        *,
+        scope: str | None = None,
+    ) -> list[Relationship]:
+        if memory_id not in self._graph:
+            return []
+        resolved_scope = scope or self._scope_manager.current_scope
+        relationships: list[Relationship] = []
+        for _, target, key, data in self._graph.out_edges(memory_id, keys=True, data=True):
+            relationship: Relationship = data.get("relationship")
+            if relationship is None:
+                continue
+            if resolved_scope and relationship.scope != resolved_scope:
+                continue
+            relationships.append(relationship)
+        return relationships
+
+    def close(self) -> None:
+        self._persistence.close()
 
     # ------------------------------------------------------------------
     # Internal helpers

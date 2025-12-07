@@ -51,20 +51,20 @@ class TestBuildParser:
     def test_init_verbose_flag(self):
         """Test that init command accepts --verbose flag."""
         parser = build_parser()
-        args = parser.parse_args(["init", "--verbose"])
+        args = parser.parse_args(["--verbose", "init"])
         assert args.verbose is True
 
     def test_init_verbose_short_flag(self):
         """Test that init command accepts -v flag."""
         parser = build_parser()
-        args = parser.parse_args(["init", "-v"])
+        args = parser.parse_args(["-v", "init"])
         assert args.verbose is True
 
 
 class TestMain:
     """Tests for main function."""
 
-    @patch("copal_cli.cli.init_command")
+    @patch("copal_cli.cli.harness_init_command")
     def test_main_calls_init_command(self, mock_init):
         """Test that main calls init_command with correct arguments."""
         mock_init.return_value = 0
@@ -76,7 +76,7 @@ class TestMain:
             dry_run=False
         )
 
-    @patch("copal_cli.cli.init_command")
+    @patch("copal_cli.cli.harness_init_command")
     def test_main_with_dry_run(self, mock_init):
         """Test that main passes dry_run flag correctly."""
         mock_init.return_value = 0
@@ -93,7 +93,7 @@ class TestMain:
         with pytest.raises(SystemExit):
             main([])
 
-    @patch("copal_cli.cli.init_command")
+    @patch("copal_cli.cli.harness_init_command")
     def test_main_returns_init_exit_code(self, mock_init):
         """Test that main returns exit code from init_command."""
         mock_init.return_value = 42
