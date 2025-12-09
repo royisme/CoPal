@@ -1,6 +1,6 @@
 # CoPal
 
-**Agent Harness Configuration Tool (AI Agents 配置与编排工具)**
+**Agent Harness 配置与状态管理工具**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -9,151 +9,184 @@
 
 ## 概述
 
-CoPal 是一个**Agent Harness 配置生成器与校验器**。它的核心定位是为 AI 编程助手（如 **Anthropic Claude Code**、**OpenAI Codex CLI**、**Cursor** 等）提供标准化的工作环境配置（Harness）。
+CoPal 是一个**被动的 Agent Harness 工具**——它为 AI Coding Agents（如 **Claude Code**、**Codex CLI**、**Gemini CLI**）提供标准化的配置和状态管理接口。
 
-**CoPal 不是一个代理（Agent），而是一个为代理准备环境的工具。**
+> **CoPal 不是 Agent，也不主动控制任何流程。**  
+> 真正的主体是 Claude Code 等 Coding Agent。它们在工作时会读取 CoPal 生成的配置文件（`AGENTS.md`、`SKILL.md`），并在需要时调用 `copal` CLI 命令来管理任务状态。
 
-它通过 Init-time（初始化时）生成静态配置文件（`AGENTS.md`、Workflows、Prompts），让运行时（Run-time）的通用 AI Agent 能够遵循能够复用、确定性的工程流程。
+### 工作模式
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  用户 → Claude Code (主体) → 调用 copal CLI → 读取/更新状态  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+1. **Init-time**: CoPal 一次性生成配置文件（`AGENTS.md`、`SKILL.md`、workflows）
+2. **Run-time**: Claude Code 等 Agent 读取这些配置，并在执行过程中调用 `copal` 命令
+3. **CoPal 始终是被动的**：它只响应 Agent 的命令调用，不主动介入
+
+### 设计灵感
+
+设计灵感源自 [Anthropic 的长时运行 Agent 研究](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)——当 Agent 需要跨多个上下文窗口工作时，需要一个机制来：
+
+- 保存会话摘要（Session Memory）
+- 管理任务状态（todo.json）
+- 验证环境状态（Pre-task validation）
+
+CoPal 就是这个机制的 CLI 实现，**供 Agent 调用**。
 
 ## 核心功能
 
-- **Init-time Configuration**：一次性生成标准化的 `AGENTS.md` 和 workflow 指令，避免每次对话重复 prompt。
-- **Passive Orchestration**：通过文件系统（`.copal/`）向 Agent 传递上下文和约束，而非主动劫持控制流。
-- **Worktree Isolation**：内置 Git Worktree 管理，为每个 AI 任务创建隔离的开发环境，保护主分支。
-- **Persistent Memory**：跨会话管理项目特定的知识和状态（Memory），防止上下文丢失。
-- **Artifact Validation**：提供 `copal validate` 命令，事后校验 Agent 生成的工件（JSON Plan、Todo List 等）是否符合 Schema。
-- **Universal Export**：同一套配置可导出为 Claude Code 命令、Cursor Rules 或 Codex Prompts。
+| 功能              | CoPal 提供了什么           | Agent 如何使用                                          |
+| ----------------- | -------------------------- | ------------------------------------------------------- |
+| **会话记忆**      | 存储/检索会话摘要的接口    | Agent 调用 `copal done` 保存摘要，`copal next` 读取历史 |
+| **任务状态**      | `todo.json` 及状态管理命令 | Agent 调用 `copal next` / `copal done` 更新状态         |
+| **环境验证**      | Pre-task 检查命令          | Agent 调用 `copal validate --pre-task` 确认环境         |
+| **Worktree 管理** | Git worktree 封装          | Agent 调用 `copal next --worktree` 创建隔离环境         |
+| **配置导出**      | 生成各工具格式的配置       | 用户运行 `copal export claude` 生成 `.claude/` 配置     |
 
 ## 快速开始
 
 ### 1. 安装
 
-### 1. 安装
-
-**推荐：使用 uv**（快速、环境隔离）
-
 ```bash
-# 直接从 PyPI 安装（待发布后）
+# 使用 uv (推荐)
 uv tool install copal-cli
 
-# 或者从源码安装
-git clone https://github.com/royisme/CoPal.git
-cd CoPal
-uv tool install .
+# 或 pip
+pip install copal-cli
 ```
 
-**替代方案：pip**
-
-```bash
-pip install -e .
-```
-
-### 2. 初始化项目 (Init)
-
-在任意项目根目录下运行，生成 Harness 配置：
+### 2. 初始化项目
 
 ```bash
 copal init
 ```
 
-这将创建：
+这会生成：
 
-- `AGENTS.md`：AI Agent 的入口指南。
-- `.copal/manifest.yaml`：项目配置清单。
-- `.copal/packs/`：安装默认的工作流包（如 `engineering_loop`）。
+- `AGENTS.md` - Agent 的入口指南
+- `.copal/packs/engineering_loop/skill/SKILL.md` - Claude Code Skill 定义
+- `.copal/manifest.yaml` - 项目配置
 
-### 3. 创建隔离工作区 (Worktree)
-
-为新任务创建一个隔离的 Git Worktree，避免污染当前开发环境：
+### 3. 导出到 Agent 工具
 
 ```bash
-# 创建一个名为 "feature-login" 的新功能分支工作区
-copal worktree new feature-login
-```
-
-### 4. 导出指令 (Export)
-
-将配置导出为你使用的 Agent 工具可识别的格式：
-
-```bash
-# 为 Claude Code 导出指令
+# 为 Claude Code 导出
 copal export claude
-# 生成文件位于 .claude/commands/copal/*.md
+# 生成 .claude/skills/copal-engineering_loop/SKILL.md
 ```
 
-### 5. 运行 Agent
+### 4. 使用 Agent
 
-启动你的 AI Agent（例如 Claude Code），它会自动读取 `AGENTS.md` 和导出的指令。
+现在当你启动 Claude Code 时：
 
-> **User**: "Claude, please start the task: Add generic export support to Copal CLI."
+1. **Claude Code 读取 `AGENTS.md`** 了解项目规则
+2. **Claude Code 加载 `SKILL.md`** 了解如何使用 CoPal
+3. **用户下达任务**: "实现用户登录功能"
+4. **Claude Code 执行**:
+   ```bash
+   # Claude Code 调用这些命令
+   copal status              # 查看状态
+   copal next                # 领取任务，查看历史上下文
+   copal validate --pre-task # 验证环境
+   # ... 实现代码 ...
+   copal done 1              # 完成任务，保存会话摘要
+   ```
 
-Agent 会遵循指南：
+## Agent 可调用的命令
 
-1. **Plan**: 生成计划并写入 `.copal/artifacts/plan.json`
-2. **Research**: 调用工具调研代码库
-3. **Work**: 实施代码变更
+以下命令设计供 Coding Agent 在执行过程中调用：
 
-### 6. 管理记忆 (Memory)
-
-**注意：此功能主要供 Agent 在运行时通过 Tool 调用，而非用户手动操作。**
-Agent 可以利用 Copal 提供的记忆库来跨会话存储关键决策或上下文：
+### 任务生命周期
 
 ```bash
-# Agent 调用此命令添加一条新的记忆
-copal memory add --type concept --content "The export module uses a plugin architecture."
+# 查看项目状态
+copal status
 
-# Agent 调用此命令搜索记忆
-copal memory search --query "export module"
+# 领取下一个任务 (显示最近会话历史)
+copal next
+
+# 领取任务并创建隔离 worktree
+copal next --worktree
+
+# 完成任务 (自动保存会话摘要到 Memory)
+copal done <task_id>
 ```
 
-### 7. 校验状态 (Validate)
-
-在 Agent 工作过程中或完成后，校验工件是否符合规范：
+### 环境验证
 
 ```bash
-# 校验配置和 Agent 生成的工件格式是否正确
+# Pre-task 验证: 检查 Git 状态 + 运行测试
+copal validate --pre-task
+
+# 验证配置
+copal validate
+
+# 验证 Agent 生成的工件
 copal validate --artifacts
 ```
 
-## CLI 命令参考
+### 记忆管理
 
-| 命令                  | 用途                                                                 |
-| --------------------- | -------------------------------------------------------------------- |
-| `copal init`          | 初始化项目，生成 `AGENTS.md` 和 `.copal/` 目录                       |
-| `copal validate`      | 校验 Manifest 和 Pack 配置。使用 `--artifacts` 校验生成产物          |
-| `copal export <tool>` | 将指令导出为指定工具格式（支持 `claude`, `codex`, `gemini`）         |
-| `copal status`        | 查看当前项目的 Harness 状态和 Artifacts 摘要                         |
-| `copal worktree`      | 管理 Git Worktrees (`new`, `list`, `remove`)，实现任务隔离           |
-| `copal memory`        | 管理项目记忆库 (`add`, `search`, `list`, `show`, `update`, `delete`) |
-| `copal mcp`           | 查看 Model Context Protocol 工具配置状态                             |
+```bash
+# 搜索历史记忆
+copal memory search --query "authentication"
 
-## 目录结构规范
+# 添加记忆
+copal memory add --type decision --content "使用 JWT 进行认证"
 
-CoPal 初始化的标准结构：
+# 列出所有记忆
+copal memory list
+```
+
+### Worktree 管理
+
+```bash
+# 创建新 worktree
+copal worktree new feature-login
+
+# 列出 worktrees
+copal worktree list
+
+# 删除 worktree
+copal worktree remove feature-login
+```
+
+## 用户命令
+
+以下命令主要供用户（而非 Agent）使用：
+
+```bash
+# 初始化项目
+copal init
+
+# 导出到 Agent 工具
+copal export claude|codex|gemini
+```
+
+## 目录结构
 
 ```
 Project/
-├── AGENTS.md                # Agent 入口指南（只包含核心原则和索引）
+├── AGENTS.md                    # Agent 入口指南
 ├── .copal/
-│   ├── manifest.yaml        # Copal 配置
-│   ├── artifacts/           # Agent 运行时的产出物 (plan.json, findings.json...)
-│   ├── memory/              # Memory 存储 (sqlite/json)
-│   ├── packs/               # 安装的工作流包
-│   │   └── engineering_loop/
-│   │       ├── workflows/   # 具体的步骤说明 (md)
-│   │       ├── prompts/     # 角色 Prompt 模板
-│   │       └── schemas/     # 工件 JSON Schema
-│   └── mcp-available.json   # MCP 工具注册表
+│   ├── manifest.yaml            # CoPal 配置
+│   ├── artifacts/
+│   │   └── todo.json            # 任务列表 (Agent 调用命令更新)
+│   ├── memory/                  # Memory 存储 (Agent 调用命令读写)
+│   └── packs/
+│       └── engineering_loop/
+│           └── skill/SKILL.md   # Claude Code Skill (Agent 读取)
 ```
 
-## 贡献
+## 设计原则
 
-欢迎贡献新的 Workflow Packs 或 Tool Adapters！
-
-1. Fork 本仓库
-2. 创建功能分支
-3. 提交更改
-4. 开启 Pull Request
+1. **CoPal 是被动的** - 只响应 Agent 的命令调用，不主动控制流程
+2. **Agent 是主体** - Claude Code 等 Agent 负责决策和执行
+3. **文件系统是通信媒介** - 通过 `.copal/` 目录传递状态和配置
+4. **增量进展** - 每个会话完成小任务，保存摘要供下个会话使用
 
 ## 许可证
 
