@@ -73,7 +73,9 @@ class TestMain:
         mock_init.assert_called_once_with(
             target="/test/path",
             force=True,
-            dry_run=False
+            dry_run=False,
+            tools=None,
+            packs=None
         )
 
     @patch("copal_cli.cli.harness_init_command")
@@ -85,7 +87,9 @@ class TestMain:
         mock_init.assert_called_once_with(
             target=".",
             force=False,
-            dry_run=True
+            dry_run=True,
+            tools=None,
+            packs=None
         )
 
     def test_main_no_command(self):

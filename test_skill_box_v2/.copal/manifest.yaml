@@ -1,0 +1,22 @@
+version: "0.1.0"
+project:
+  name: test_skill_box_v2
+  description: "Project initialized with Copal"
+default_pack: engineering_loop
+
+# Active packs for this project
+packs:
+  - engineering_loop
+
+# Enabled AI adapters
+adapters:
+  - claude
+
+# Verification command (Agent runs this to verify work)
+verify:
+  command: .copal/packs/engineering_loop/scripts/verify.sh
+
+# Memory configuration
+memory:
+  enabled: true
+  provider: json

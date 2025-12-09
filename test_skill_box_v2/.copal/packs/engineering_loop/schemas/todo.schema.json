@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "generated_from": { "type": "string" },
+    "items": { 
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "action": { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "required": ["id", "action", "status"]
+      }
+    }
+  },
+  "required": ["items"]
+}

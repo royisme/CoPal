@@ -7,7 +7,7 @@ name = "copal-cli"
 version = "0.1.0"
 description = "CoPal - Command-line orchestration playbook for AI coding agents"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 authors = [
     { name = "CoPal Team" }
 ]

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 import logging
+import subprocess
 from pathlib import Path
 
+import jsonschema
 from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
@@ -12,9 +15,6 @@ from copal_cli.config.pack import Pack
 
 logger = logging.getLogger(__name__)
 console = Console()
-
-import json
-import jsonschema
 
 def validate_command(target: str = ".", check_artifacts: bool = False) -> int:
     """
@@ -144,3 +144,64 @@ def validate_command(target: str = ".", check_artifacts: bool = False) -> int:
             return 3
 
     return 0
+
+
+def validate_pre_task(target: str = ".") -> int:
+    """
+    Perform pre-task checks:
+    1. Git status (must be clean)
+    2. Run test command (must pass)
+    """
+    target_path = Path(target).resolve()
+    manifest_path = target_path / ".copal" / "manifest.yaml"
+    
+    console.print("[bold]Running Pre-Task Validation...[/bold]")
+    
+    # 0. Check Git Status
+    try:
+        # Check for uncommitted changes
+        status = subprocess.check_output(
+            ["git", "status", "--porcelain"], 
+            cwd=target_path, 
+            text=True
+        ).strip()
+        
+        if status:
+            console.print("[red]✗ Uncommitted changes found. Please commit or stash them before starting a new task.[/red]")
+            console.print(status)
+            return 1
+        console.print("[green]✓ Git working directory is clean[/green]")
+        
+    except FileNotFoundError:
+        console.print("[yellow]⚠ Not a git repository, skipping git check[/yellow]")
+    except subprocess.CalledProcessError:
+        console.print("[red]✗ Failed to check git status[/red]")
+        return 1
+
+    # 1. Load Manifest for Test Command
+    if not manifest_path.exists():
+        console.print(f"[red]✗ Manifest not found at {manifest_path}[/red]")
+        return 2
+        
+    try:
+        manifest = Manifest.load(manifest_path)
+    except Exception as e:
+        console.print(f"[red]✗ manifest.yaml invalid: {e}[/red]")
+        return 2
+
+    # 2. Run Test Command (uses manifest.verify.command)
+    if manifest.verify and manifest.verify.command:
+        cmd = manifest.verify.command
+        console.print(f"[bold]Running verification: {cmd}...[/bold]")
+        try:
+            subprocess.check_call(cmd, shell=True, cwd=target_path)
+            console.print("[green]✓ Verification command passed[/green]")
+        except subprocess.CalledProcessError:
+            console.print(f"[red]✗ Verification Failed: Command '{cmd}' returned non-zero exit status[/red]")
+            return 1
+    else:
+        console.print("[yellow]⚠ No verify.command configured in manifest, skipping verification[/yellow]")
+
+    console.print("\n[green bold]✓ Pre-task validation passed! Ready to start task.[/green bold]")
+    return 0
+

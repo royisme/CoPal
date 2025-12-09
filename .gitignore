@@ -31,3 +31,5 @@ Thumbs.db
 AGENTS.md
 .agents/
 .serena
+# db
+*.db

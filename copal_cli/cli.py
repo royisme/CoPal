@@ -101,6 +101,11 @@ def build_parser() -> argparse.ArgumentParser:
         dest="check_artifacts",
         help="Validate generated artifacts against schemas",
     )
+    validate_parser.add_argument(
+        "--pre-task",
+        action="store_true",
+        help="Run pre-task validation (git status, tests)",
+    )
     validate_parser.set_defaults(handler=_handle_validate)
 
     # Export command
@@ -145,6 +150,11 @@ def build_parser() -> argparse.ArgumentParser:
     next_parser.add_argument(
         "--id",
         help="Specific task ID to start",
+    )
+    next_parser.add_argument(
+        "--worktree",
+        action="store_true",
+        help="Create a git worktree for this task",
     )
     next_parser.set_defaults(handler=_handle_next)
 
@@ -339,7 +349,12 @@ def _handle_init(args: argparse.Namespace) -> int:
 
 
 def _handle_validate(args: argparse.Namespace) -> int:
-    # Use new harness validator
+    # Check if pre-task validation is requested
+    if getattr(args, "pre_task", False):
+        from copal_cli.harness.validate import validate_pre_task
+        return validate_pre_task(target=args.target)
+    
+    # Use standard harness validator
     return harness_validate_command(
         target=args.target, 
         check_artifacts=getattr(args, "check_artifacts", False)
@@ -355,12 +370,11 @@ def _handle_status(args: argparse.Namespace) -> int:
     return harness_status_command(target=args.target)
 
 
-def _handle_next(args: argparse.Namespace) -> int:
+def _handle_next(args):
+    from copal_cli.harness.agent_manager import AgentManager
     manager = AgentManager(Path(args.target).resolve())
-    # Advance task logic
-    if manager.advance_task(task_id=getattr(args, "id", None)):
-        return 0
-    return 1
+    success = manager.advance_task(args.id, worktree=args.worktree)
+    return 0 if success else 1
 
 def _handle_done(args: argparse.Namespace) -> int:
     manager = AgentManager(Path(args.target).resolve())

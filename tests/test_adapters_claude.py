@@ -20,6 +20,11 @@ def test_claude_adapter_export(tmp_path):
         "planner": "prompts/planner.md"
     }
     
+    # Create pack directory structure for skill export
+    pack_base = target_root / "pack"
+    pack_base.mkdir()
+    pack._base_path = pack_base  # Required for _export_skill
+    
     # Mock methods to return valid paths
     pack.get_workflow_path.return_value = target_root / "workflows" / "plan.md"
     pack.get_prompt_path.return_value = target_root / "prompts" / "planner.md"

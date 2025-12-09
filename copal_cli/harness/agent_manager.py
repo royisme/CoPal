@@ -5,11 +5,11 @@ import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
-from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
+from rich.panel import Panel
+from rich.console import Console
 
-from copal_cli.config.manifest import Manifest
+from copal_cli.harness.session import SessionManager
 from copal_cli.harness.validate import validate_command
 
 logger = logging.getLogger(__name__)
@@ -21,9 +21,16 @@ class AgentManager:
     Acts as the 'Manager' that directs the Agent to the next task.
     """
     
-    def __init__(self, target_path: Path):
-        self.target_path = target_path
-        self.manifest_path = target_path / ".copal" / "manifest.yaml"
+    def __init__(self, target: Path):
+        self.target = target
+        self.todo_path = target / ".copal" / "artifacts" / "todo.json"
+        
+        # Ensure directories exist
+        self.todo_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        self.console = Console()
+        self.session_manager = SessionManager(target)
+        self.manifest_path = target / ".copal" / "manifest.yaml"
         self._manifest: Optional[Manifest] = None
         
     @property
@@ -35,12 +42,17 @@ class AgentManager:
         return self._manifest
         
     @property
-    def artifacts_dir(self) -> Path:
-        return self.target_path / self.manifest.artifacts.dir
+    def manifest(self) -> Manifest:
+        if not self._manifest:
+            if not self.manifest_path.exists():
+                raise FileNotFoundError(f"Manifest not found at {self.manifest_path}")
+            self._manifest = Manifest.load(self.manifest_path)
+        return self._manifest
+
 
     @property
-    def todo_path(self) -> Path:
-        return self.artifacts_dir / "todo.json"
+    def artifacts_dir(self) -> Path:
+        return self.target / ".copal" / "artifacts"
 
     def ensure_artifacts_dir(self):
         if not self.artifacts_dir.exists():
@@ -79,11 +91,10 @@ class AgentManager:
                 return item
         return None
 
-    def advance_task(self, task_id: Optional[str] = None) -> bool:
+    def advance_task(self, task_id: Optional[str] = None, worktree: bool = False) -> bool:
         """
-        Advance a task's status.
-        If task_id is None, advances the current 'next' task.
-        Logic: todo -> in_progress
+        Move the next available 'todo' item to 'in_progress'. 
+        If task_id is provided, select that specific task.
         """
         data = self.load_todo()
         items = data.get("items", [])
@@ -116,11 +127,24 @@ class AgentManager:
         
         if current_status == "todo":
             target_item["status"] = "in_progress"
-            console.print(Panel(
-                f"[bold cyan]{action}[/bold cyan]",
-                title=f"▶ Started Task {tid}",
-                border_style="cyan"
+            self.console.print(Panel(
+                f"[bold]{target_item.get('action')}[/bold]",
+                title=f"▶ Started Task {target_item.get('id')}",
+                border_style="blue"
             ))
+            
+            # Show Recent Session Context for Agent
+            if self.session_manager.is_enabled():
+                history = self.session_manager.get_recent_sessions(limit=3)
+                if history:
+                    self.console.print("\n[dim]Recent Sessions:[/dim]")
+                    for h in history:
+                         self.console.print(f"[dim]- {h.formatted}[/dim]")
+            
+            # Create Worktree if requested
+            if worktree:
+                self._create_task_worktree(target_item)
+            
             modified = True
         elif current_status == "in_progress":
             console.print(Panel(
@@ -134,6 +158,35 @@ class AgentManager:
             
         return True
 
+    def _create_task_worktree(self, task: dict):
+        """Create a git worktree for the task."""
+        from copal_cli.worktree.git_utils import worktree_add, get_repo_root
+        from copal_cli.worktree.sync import sync_assets
+
+        repo_root = get_repo_root(self.target)
+        if not repo_root:
+            self.console.print("[red]✗ Not a git repository. Cannot create worktree.[/red]")
+            return
+
+        task_id = task.get("id")
+        wt_name = f"copal-task-{task_id}"
+        repo_name = repo_root.name
+        wt_root = repo_root.parent / f"{repo_name}.wt"
+        target_path = wt_root / wt_name
+        
+        if target_path.exists():
+             self.console.print(f"[yellow]⚠ Worktree {wt_name} already exists at {target_path}.[/yellow]")
+             self.console.print(f"[bold]To switch: cd {target_path}[/bold]")
+             return
+
+        self.console.print(f"[bold]Creating worktree for task {task_id}...[/bold]")
+        if worktree_add(repo_root, target_path, branch=wt_name):
+             sync_assets(repo_root, target_path)
+             self.console.print(f"[green]✓ Worktree created at {target_path}[/green]")
+             self.console.print(f"[bold]To start working: cd {target_path}[/bold]")
+        else:
+             self.console.print(f"[red]✗ Failed to create worktree.[/red]")
+
     def complete_task(self, task_id: str) -> bool:
         """
         Mark a task as done.
@@ -142,23 +195,37 @@ class AgentManager:
         items = data.get("items", [])
         modified = False
         
+        task = None
         for item in items:
             if str(item.get("id")) == str(task_id):
-                item["status"] = "done"
-                console.print(Panel(
-                    f"[bold green]{item.get('action')}[/bold green]",
-                    title=f"✓ Completed Task {task_id}",
-                    border_style="green"
-                ))
-                modified = True
+                task = item
                 break
-                
-        if not modified:
-             console.print(f"[red]✗ Task ID {task_id} not found.[/red]")
-             return False
-             
-        self.save_todo(data)
-        return True
+        
+        if task:
+            task["status"] = "done"
+            # Save todo.json
+            self.save_todo(data)
+            
+            # Save Session Summary
+            summary = self._generate_completion_summary(task)
+            self.session_manager.save_session_summary(task_id, summary)
+            
+            self.console.print(Panel(
+                f"[green]Tasks Updated![/green]\n"
+                f"Task: {task['id']} marked as [bold]done[/bold].\n"
+                f"Session summary saved.",
+                title="Task Completed"
+            ))
+            return True
+
+        self.console.print(f"[red]Task {task_id} not found in todo list.[/red]")
+        return False
+
+    def _generate_completion_summary(self, task: dict) -> str:
+        """Generate a summary string for the completed task."""
+        # In a real agent workflow, this might come from the agent's own output.
+        # For now, we generate a basic record.
+        return f"Completed task '{task.get('action', 'unknown')}'. Status changed from {task.get('status')} to done."
 
     def summary(self):
         """Print a summary of todo list."""

@@ -1,0 +1,16 @@
+{
+  "memory": {
+    "enabled": true,
+    "backend": "sqlite",
+    "scope": {
+      "default": "test_proj"
+    }
+  },
+  "items": [
+    {
+      "id": "1",
+      "action": "Setup project",
+      "status": "done"
+    }
+  ]
+}

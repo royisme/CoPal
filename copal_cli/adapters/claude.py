@@ -15,12 +15,44 @@ class ClaudeAdapter(Adapter):
     def export(self, pack: Pack) -> None:
         """
         Generate Claude Code configuration:
-        1. Subagents in .claude/agents/*.md
-        2. Commands in .claude/commands/copal/*.md
+        1. Skills in .claude/skills/copal-{pack_name}/
+        2. Subagents in .claude/agents/*.md
+        3. Commands in .claude/commands/copal/*.md
         """
+        self._export_skill(pack)
         self._export_subagents(pack)
         self._export_commands(pack)
         self._export_orchestrator_start(pack)
+
+    def _export_skill(self, pack: Pack) -> None:
+        """
+        Export Skill to .claude/skills/copal-{pack_name}/
+        
+        Skills are the primary integration mechanism - Claude loads them dynamically
+        and calls copal CLI commands directly.
+        """
+        skill_dir = self.target_root / ".claude" / "skills" / f"copal-{pack.name}"
+        skill_dir.mkdir(parents=True, exist_ok=True)
+
+        # Look for skill folder in pack
+        pack_skill_dir = pack._base_path / "skill"
+        if pack_skill_dir.exists():
+            # Copy SKILL.md
+            skill_md = pack_skill_dir / "SKILL.md"
+            if skill_md.exists():
+                atomic_write(skill_dir / "SKILL.md", skill_md.read_text(encoding="utf-8"))
+                logger.info(f"Exported skill {skill_dir / 'SKILL.md'}")
+            
+            # Copy references if present
+            refs_dir = pack_skill_dir / "references"
+            if refs_dir.exists() and refs_dir.is_dir():
+                target_refs = skill_dir / "references"
+                target_refs.mkdir(parents=True, exist_ok=True)
+                for ref_file in refs_dir.glob("*.md"):
+                    atomic_write(target_refs / ref_file.name, ref_file.read_text(encoding="utf-8"))
+                    logger.info(f"Exported skill reference {target_refs / ref_file.name}")
+        else:
+            logger.warning(f"No skill folder found in pack {pack.name}")
 
     def _export_subagents(self, pack: Pack) -> None:
         """
@@ -70,8 +102,7 @@ description: Copal {role.title()} Agent - {pack.description}
         for wf_name, wf_rel_path in pack.workflows.items():
             wf_path = pack.get_workflow_path(wf_name)
             if not wf_path or not wf_path.exists():
-                logger.error(f"Workflow {wf_name} file not found: {wf_path}")
-                continue
+                raise FileNotFoundError(f"Workflow {wf_name} file not found: {wf_path}")
                 
             content = wf_path.read_text(encoding="utf-8")
             
