@@ -9,6 +9,10 @@ from typing import Optional
 from collections.abc import Iterable
 from uuid import uuid4
 
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+
 from .config import (
     is_memory_enabled,
     load_memory_config,
@@ -19,6 +23,8 @@ from .json_store import JsonMemoryStore
 from .sqlite_store import SQLiteMemoryStore
 from .scope import ScopeManager
 from .store_interface import IMemoryStore
+
+console = Console()
 
 
 @dataclass
@@ -45,7 +51,7 @@ def _build_context(args: argparse.Namespace) -> MemoryCLIContext | None:
     target_root = _ensure_target_root(getattr(args, "target", "."))
     config = load_memory_config(target_root)
     if not is_memory_enabled(config):
-        print("Memory subsystem is disabled in configuration.")
+        console.print("[yellow]Memory subsystem is disabled in configuration.[/yellow]")
         return None
 
     scope_manager = ScopeManager.from_config(target_root, config)
@@ -105,7 +111,7 @@ def memory_add_command(args: argparse.Namespace) -> int:
             importance=float(getattr(args, "importance", 0.5)),
         )
         context.store.add_memory(memory)
-        print(f"Created memory {memory.id} in scope '{memory.scope}'.")
+        console.print(f"[green]✓ Created memory[/green] [cyan]{memory.id}[/cyan] in scope '[cyan]{memory.scope}[/cyan]'")
         return 0
     finally:
         context.store.close()
@@ -121,11 +127,18 @@ def memory_search_command(args: argparse.Namespace) -> int:
         types = [MemoryType(t) for t in type_args] if type_args else None
         results = context.store.search_memories(getattr(args, "query"), scope=scope, types=types)
         if not results:
-            print("No memories matched the query.")
+            console.print("[dim]No memories matched the query.[/dim]")
             return 0
-        print(f"Found {len(results)} memories in scope '{scope}':")
+        
+        table = Table(title=f"Search Results ({len(results)} memories in scope '{scope}')")
+        table.add_column("Type", style="magenta")
+        table.add_column("ID", style="cyan")
+        table.add_column("Content")
+        
         for memory in results:
-            print(f"- [{memory.type.value}] {memory.id}: {memory.content}")
+            table.add_row(memory.type.value, memory.id, memory.content[:60] + "..." if len(memory.content) > 60 else memory.content)
+        
+        console.print(table)
         return 0
     finally:
         context.store.close()
@@ -139,26 +152,30 @@ def memory_show_command(args: argparse.Namespace) -> int:
         scope = context.resolve_scope(getattr(args, "scope", None))
         memory = context.store.get_memory(getattr(args, "memory_id"), scope=scope)
         if memory is None:
-            print("Memory not found in the requested scope.")
+            console.print("[yellow]Memory not found in the requested scope.[/yellow]")
             return 1
-        print(f"ID: {memory.id}")
-        print(f"Type: {memory.type.value}")
-        print(f"Scope: {memory.scope}")
-        print(f"Content: {memory.content}")
-        print(f"Importance: {memory.importance}")
-        print(f"Created: {memory.created_at.isoformat()}")
-        print(f"Updated: {memory.updated_at.isoformat()}")
+        
+        console.print(Panel.fit(
+            f"[bold]ID:[/bold] {memory.id}\n"
+            f"[bold]Type:[/bold] {memory.type.value}\n"
+            f"[bold]Scope:[/bold] {memory.scope}\n"
+            f"[bold]Content:[/bold] {memory.content}\n"
+            f"[bold]Importance:[/bold] {memory.importance}\n"
+            f"[bold]Created:[/bold] {memory.created_at.isoformat()}\n"
+            f"[bold]Updated:[/bold] {memory.updated_at.isoformat()}",
+            title="[bold blue]Memory Details[/bold blue]"
+        ))
+        
         if memory.metadata:
-            print("Metadata:")
+            console.print("\n[bold]Metadata:[/bold]")
             for key, value in memory.metadata.items():
-                print(f"  - {key}: {value}")
+                console.print(f"  • [cyan]{key}[/cyan]: {value}")
+        
         relationships = context.store.list_relationships(memory.id, scope=scope)
         if relationships:
-            print("Relationships:")
+            console.print("\n[bold]Relationships:[/bold]")
             for rel in relationships:
-                print(
-                    f"  - ({rel.type.value}) {rel.source_id} -> {rel.target_id}"
-                )
+                console.print(f"  • [dim]({rel.type.value})[/dim] {rel.source_id} → {rel.target_id}")
         return 0
     finally:
         context.store.close()
@@ -181,13 +198,13 @@ def memory_update_command(args: argparse.Namespace) -> int:
         if getattr(args, "type", None):
             updates["type"] = MemoryType(args.type)
         if not updates:
-            print("No updates provided.")
+            console.print("[yellow]No updates provided.[/yellow]")
             return 1
         memory = context.store.update_memory(args.memory_id, scope=scope, **updates)
         if memory is None:
-            print("Memory not found.")
+            console.print("[yellow]Memory not found.[/yellow]")
             return 1
-        print(f"Updated memory {memory.id}.")
+        console.print(f"[green]✓ Updated memory[/green] [cyan]{memory.id}[/cyan]")
         return 0
     finally:
         context.store.close()
@@ -201,9 +218,9 @@ def memory_delete_command(args: argparse.Namespace) -> int:
         scope = context.resolve_scope(getattr(args, "scope", None))
         deleted = context.store.delete_memory(args.memory_id, scope=scope)
         if not deleted:
-            print("Memory not found.")
+            console.print("[yellow]Memory not found.[/yellow]")
             return 1
-        print(f"Deleted memory {args.memory_id}.")
+        console.print(f"[green]✓ Deleted memory[/green] [cyan]{args.memory_id}[/cyan]")
         return 0
     finally:
         context.store.close()
@@ -219,11 +236,18 @@ def memory_list_command(args: argparse.Namespace) -> int:
         types = [MemoryType(t) for t in type_args] if type_args else None
         memories = context.store.list_memories(scope=scope, types=types)
         if not memories:
-            print("No memories stored for this scope.")
+            console.print(f"[dim]No memories stored for scope '{scope}'.[/dim]")
             return 0
-        print(f"Memories in scope '{scope}':")
+        
+        table = Table(title=f"Memories in scope '{scope}'")
+        table.add_column("Type", style="magenta")
+        table.add_column("ID", style="cyan")
+        table.add_column("Content")
+        
         for memory in memories:
-            print(f"- [{memory.type.value}] {memory.id}: {memory.content}")
+            table.add_row(memory.type.value, memory.id, memory.content[:60] + "..." if len(memory.content) > 60 else memory.content)
+        
+        console.print(table)
         return 0
     finally:
         context.store.close()

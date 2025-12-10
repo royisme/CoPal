@@ -31,7 +31,7 @@ def mock_template_dir(tmp_path):
     (tpl_dir / "docs").mkdir()
     (tpl_dir / "docs" / "repo_map.md").write_text("docs")
     
-    with patch("copal_cli.harness.init.BASE_TEMPLATE_DIR", tpl_dir):
+    with patch("copal_cli.harness.init.INIT_TEMPLATE_DIR", tpl_dir):
         with patch("copal_cli.harness.init.PACKS_TEMPLATE_DIR", tpl_dir):
             yield tpl_dir
 

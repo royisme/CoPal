@@ -5,7 +5,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from rich.console import Console
+from rich.panel import Panel
+
 logger = logging.getLogger(__name__)
+console = Console()
 
 
 def print_resume_info(target_root: Path) -> None:
@@ -17,31 +21,31 @@ def print_resume_info(target_root: Path) -> None:
     runtime_dir = target_root / ".copal" / "runtime"
 
     if not runtime_dir.exists():
-        print("\nRuntime directory not found (.copal/runtime/)")
-        print("Please run 'copal analyze' to start a new task\n")
+        console.print("[yellow]Runtime directory not found (.copal/runtime/)[/yellow]")
+        console.print("[dim]Please run 'copal analyze' to start a new task[/dim]")
         return
 
     # Find the most recent prompt
     prompts = sorted(runtime_dir.glob("*.prompt.md"), key=lambda p: p.stat().st_mtime, reverse=True)
 
     if not prompts:
-        print("\nNo prompt files found in runtime directory")
-        print("Please run one of the following commands to start the workflow:")
-        print("  copal analyze")
-        print()
+        console.print("[yellow]No prompt files found in runtime directory[/yellow]")
+        console.print("[dim]Please run one of the following commands to start the workflow:[/dim]")
+        console.print("  [cyan]copal analyze[/cyan]")
         return
 
     latest_prompt = prompts[0]
     stage_name = latest_prompt.stem.replace('.prompt', '')
 
-    print(f"\n=== Resume Workflow ===\n")
-    print(f"Latest stage: {stage_name}")
-    print(f"Prompt file: {latest_prompt}")
-    print()
-    print("To continue workflow:")
-    print(f"  1. Have Codex read: {latest_prompt}")
-    print(f"  2. After completion, save artifacts to .copal/artifacts/")
-    print()
+    console.print(Panel.fit(
+        f"[bold]Latest stage:[/bold] {stage_name}\n"
+        f"[bold]Prompt file:[/bold] {latest_prompt}",
+        title="[bold blue]Resume Workflow[/bold blue]"
+    ))
+
+    console.print("\n[bold]To continue workflow:[/bold]")
+    console.print(f"  1. Have Codex read: [cyan]{latest_prompt}[/cyan]")
+    console.print(f"  2. After completion, save artifacts to [cyan].copal/artifacts/[/cyan]")
 
     # Show expected output
     expected_outputs = {
@@ -53,13 +57,11 @@ def print_resume_info(target_root: Path) -> None:
     }
 
     if stage_name in expected_outputs:
-        print(f"Expected output: {expected_outputs[stage_name]}")
-        print()
+        console.print(f"\n[bold]Expected output:[/bold] [cyan]{expected_outputs[stage_name]}[/cyan]")
 
     # Check if artifact exists
     artifacts_dir = target_root / ".copal" / "artifacts"
     if artifacts_dir.exists():
         artifact_file = artifacts_dir / f"{stage_name}.md"
         if artifact_file.exists():
-            print(f"Note: Artifact file {artifact_file.name} already exists")
-            print()
+            console.print(f"\n[yellow]Note: Artifact file {artifact_file.name} already exists[/yellow]")

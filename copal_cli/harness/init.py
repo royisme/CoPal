@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 
-BASE_TEMPLATE_DIR = Path(__file__).parent.parent / "templates" / "base"
-PACKS_TEMPLATE_DIR = Path(__file__).parent.parent / "templates" / "v1"
+INIT_TEMPLATE_DIR = Path(__file__).parent.parent / "templates" / "init"
+PACKS_TEMPLATE_DIR = Path(__file__).parent.parent / "templates" / "packs"
 
 def init_command(target: str = ".", force: bool = False, dry_run: bool = False, tools: List[str] = None, packs: List[str] = None) -> int:
     """Initialize a new Copal project."""
@@ -72,6 +72,7 @@ def init_command(target: str = ".", force: bool = False, dry_run: bool = False, 
         ("Generating manifest.yaml", lambda: _generate_manifest(target_path, tools, packs, default_pack, force, dry_run)),
         ("Generating AGENTS.md & UserAgents.md", lambda: _create_base_files(target_path, force, dry_run)),
         ("Installing hooks", lambda: _install_hooks(copal_dir, force, dry_run)),
+        ("Installing global knowledge base", lambda: _install_global_knowledge(copal_dir, force, dry_run)),
         ("Installing packs", lambda: _install_packs(packs, copal_dir, force, dry_run)),
         ("Initializing Memory Layer", lambda: _init_memory(copal_dir, force, dry_run)),
         ("Creating documentation structure", lambda: _install_docs(copal_dir, force, dry_run)),
@@ -160,7 +161,7 @@ memory:
 def _install_hooks(copal_dir: Path, force: bool, dry_run: bool):
     if dry_run: return
     
-    src = BASE_TEMPLATE_DIR / ".copal" / "hooks"
+    src = INIT_TEMPLATE_DIR / ".copal" / "hooks"
     dst = copal_dir / "hooks"
     
     if not src.exists():
@@ -177,11 +178,32 @@ def _install_hooks(copal_dir: Path, force: bool, dry_run: bool):
             
     shutil.copytree(src, dst)
 
+def _install_global_knowledge(copal_dir: Path, force: bool, dry_run: bool):
+    """Install global knowledge base from init template."""
+    if dry_run: return
+    
+    src = INIT_TEMPLATE_DIR / ".copal" / "global"
+    dst = copal_dir / "global"
+    
+    if not src.exists():
+        logger.warning(f"Global knowledge base template not found at {src}")
+        return
+
+    if dst.exists():
+        if force:
+            shutil.rmtree(dst)
+        else:
+            logger.warning("Global knowledge base already installed")
+            return
+            
+    shutil.copytree(src, dst)
+    logger.info(f"Installed global knowledge base to {dst}")
+
 def _create_base_files(target_path: Path, force: bool, dry_run: bool):
     if dry_run: return
     
     for filename in ["AGENTS.md", "UserAgents.md"]:
-        src = BASE_TEMPLATE_DIR / filename
+        src = INIT_TEMPLATE_DIR / filename
         dst = target_path / filename
         
         if dst.exists() and not force:
@@ -200,6 +222,9 @@ def _install_packs(packs: List[str], copal_dir: Path, force: bool, dry_run: bool
     packs_dir = copal_dir / "packs"
     packs_dir.mkdir(exist_ok=True)
     
+    skills_dir = copal_dir / "skills"
+    skills_dir.mkdir(exist_ok=True)
+    
     for pack_name in packs:
         src = PACKS_TEMPLATE_DIR / pack_name
         dst = packs_dir / pack_name
@@ -216,6 +241,16 @@ def _install_packs(packs: List[str], copal_dir: Path, force: bool, dry_run: bool
                 continue
         
         shutil.copytree(src, dst)
+        
+        # Also install pack's skill to .copal/skills/ for easy access
+        pack_skill_dir = src / "skill"
+        if pack_skill_dir.exists():
+            target_skill_dir = skills_dir / f"copal-{pack_name}"
+            if target_skill_dir.exists() and force:
+                shutil.rmtree(target_skill_dir)
+            if not target_skill_dir.exists():
+                shutil.copytree(pack_skill_dir, target_skill_dir)
+                logger.info(f"Installed skill 'copal-{pack_name}' to {target_skill_dir}")
 
 def _init_memory(copal_dir: Path, force: bool, dry_run: bool):
     if dry_run: return

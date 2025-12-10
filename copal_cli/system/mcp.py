@@ -6,7 +6,11 @@ import json
 import logging
 from pathlib import Path
 
+from rich.console import Console
+from rich.table import Table
+
 logger = logging.getLogger(__name__)
+console = Console()
 
 
 def read_mcp_available(target_root: Path) -> list[str]:
@@ -51,16 +55,19 @@ def print_mcp_available(target_root: Path) -> None:
     mcp_names = read_mcp_available(target_root)
 
     if not mcp_names:
-        print("\n.copal/mcp-available.json not found or empty")
-        print("\nYou can create this file and add available MCP tool names, for example:")
-        print('  ["context7", "active-file", "file-tree"]')
-        print("\nSupported MCP examples:")
-        print("  - context7: Context documentation query tool")
-        print("  - active-file: Active file tool")
-        print("  - file-tree: File tree navigation tool")
+        console.print("[yellow].copal/mcp-available.json not found or empty[/yellow]")
+        console.print("\n[dim]You can create this file and add available MCP tool names, for example:[/dim]")
+        console.print('  [cyan]["context7", "active-file", "file-tree"][/cyan]')
+        console.print("\n[bold]Supported MCP examples:[/bold]")
+        console.print("  • [cyan]context7[/cyan]: Context documentation query tool")
+        console.print("  • [cyan]active-file[/cyan]: Active file tool")
+        console.print("  • [cyan]file-tree[/cyan]: File tree navigation tool")
         return
 
-    print(f"\nAvailable MCP tools ({len(mcp_names)}):")
+    table = Table(title=f"Available MCP Tools ({len(mcp_names)})")
+    table.add_column("Name", style="cyan")
+    
     for name in mcp_names:
-        print(f"  - {name}")
-    print()
+        table.add_row(name)
+    
+    console.print(table)

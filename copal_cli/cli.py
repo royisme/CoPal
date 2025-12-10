@@ -11,7 +11,7 @@ from .harness.init import init_command as harness_init_command
 from .harness.validate import validate_command as harness_validate_command
 from .harness.export import export_command as harness_export_command
 from .harness.status import status_command as harness_status_command
-from .harness.status import status_command as harness_status_command
+from .harness.skill import skill_create_command, skill_list_command
 from .harness.agent_manager import AgentManager
 
 # Keep existing imports for other commands
@@ -319,6 +319,53 @@ def build_parser() -> argparse.ArgumentParser:
     )
     memory_list_parser.set_defaults(handler=memory_list_command)
 
+    # Skill commands
+    skill_parser = subparsers.add_parser(
+        "skill",
+        help="Manage project skills (Claude Code integration)",
+    )
+    skill_subparsers = skill_parser.add_subparsers(dest="skill_command", required=True)
+
+    skill_create_parser = skill_subparsers.add_parser(
+        "create",
+        help="Create a new skill from scaffold template",
+    )
+    skill_create_parser.add_argument(
+        "name",
+        help="Skill name (e.g., 'code-review', 'test-generator')",
+    )
+    skill_create_parser.add_argument(
+        "--target",
+        default=".",
+        help="Target repository path (default: current directory)",
+    )
+    skill_create_parser.add_argument(
+        "--description", "-d",
+        help="Skill description",
+    )
+    skill_create_parser.add_argument(
+        "--tags", "-t",
+        help="Comma-separated tags (e.g., 'utility,testing')",
+    )
+    skill_create_parser.add_argument(
+        "--no-interactive",
+        action="store_true",
+        help="Skip interactive prompts",
+    )
+    skill_create_parser.set_defaults(handler=_handle_skill_create)
+
+    skill_list_parser = skill_subparsers.add_parser(
+        "list",
+        aliases=["ls"],
+        help="List all skills in the project",
+    )
+    skill_list_parser.add_argument(
+        "--target",
+        default=".",
+        help="Target repository path (default: current directory)",
+    )
+    skill_list_parser.set_defaults(handler=_handle_skill_list)
+
     # System commands
     mcp_parser = subparsers.add_parser("mcp", help="Inspect Model Context Protocol configuration")
     mcp_subparsers = mcp_parser.add_subparsers(dest="mcp_command", required=True)
@@ -330,6 +377,24 @@ def build_parser() -> argparse.ArgumentParser:
     resume_parser.add_argument("--target", default=".")
 
     return parser
+
+
+def _handle_skill_create(args: argparse.Namespace) -> int:
+    tags = None
+    if args.tags:
+        tags = [t.strip() for t in args.tags.split(",") if t.strip()]
+    
+    return skill_create_command(
+        name=args.name,
+        target=args.target,
+        description=args.description,
+        tags=tags,
+        interactive=not getattr(args, "no_interactive", False),
+    )
+
+
+def _handle_skill_list(args: argparse.Namespace) -> int:
+    return skill_list_command(target=args.target)
 
 
 def _handle_init(args: argparse.Namespace) -> int:
@@ -377,6 +442,9 @@ def _handle_next(args):
     return 0 if success else 1
 
 def _handle_done(args: argparse.Namespace) -> int:
+    from rich.console import Console
+    console = Console()
+    
     manager = AgentManager(Path(args.target).resolve())
     task_id = args.id
     
@@ -394,10 +462,10 @@ def _handle_done(args: argparse.Namespace) -> int:
         if len(in_progress) == 1:
             task_id = in_progress[0].get("id")
         elif len(in_progress) > 1:
-             print("Multiple tasks in progress. Please specify ID.")
+             console.print("[yellow]Multiple tasks in progress. Please specify ID.[/yellow]")
              return 1
         else:
-             print("No active task found. Specify ID.")
+             console.print("[yellow]No active task found. Specify ID.[/yellow]")
              return 1
 
     if manager.complete_task(task_id):
